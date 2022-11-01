@@ -25,6 +25,28 @@ web_client = WebClient(token=os.environ['BOT_TOKEN'])
 
 # Functions we'd implement would be here.
 
+def enable_activity_warnings(self):
+# TODO : actually write the function. This is just for creating unit tests
+    cmd_output ={
+    "blocks": [
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "*Enabled activity warnings.*"
+        }
+    },
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "Activity warning threshold is set to 5 (default)."
+                }
+            }
+        ]
+    }
+    return cmd_output
+
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True)
