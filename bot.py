@@ -30,7 +30,6 @@ activity_warnings_enabled = False
 activity_warnings_threshold = 5
 activity_warnings_downtime = ""; # empty str if indefinite
 activity_warnings_content = "Let's get more active!"
-CONST_activity_warnings_default_content = "Let's get more active!"
 
 # Functions we'd implement would be here.
 
@@ -121,7 +120,7 @@ def set_activity_warnings_content(self):
 
     if payload["text"] == "":
         # Set to default
-        activity_warnings_content = CONST_activity_warnings_default_content
+        activity_warnings_content = "Let's get more active!"
     else:
         # Set to that indicated by user
         activity_warnings_content = payload["text"]
@@ -148,6 +147,22 @@ def set_activity_warnings_content(self):
 def check_activity(self):
 # TODO : actually write the function. This is just for creating unit tests
     return 10
+
+def send_activity_warning(self):
+# TODO : actually write the function. This is just for creating unit tests
+    cmd_output = {
+    "blocks": [
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": activity_warnings_content
+        }
+    }
+        ]
+    }
+    return cmd_output
+        
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True)

@@ -231,7 +231,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": CONST_activity_warnings_default_content
+                "text": "Let's get more active!"
                     }
                 }
             ]
@@ -240,7 +240,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         cmd_output = set_activity_warnings_content(self)
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
-        self.assertEqual(activity_warnings_content, CONST_activity_warnings_default_content)
+        self.assertEqual(activity_warnings_content, "Let's get more active!")
     
     # This test case is for set_activity_warning_content function where 
     # text is given 
@@ -300,7 +300,27 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
 
+    # This test case is for send_activity_warning, a function called by the 
+    # script that sends a message to the channel encouraging users to chat
+    def test_send_activity_warning(self):
+        # Set what we expect
+        expected_cmd_output = {
+        "blocks": [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": activity_warnings_content
+            }
+        }
+            ]
+        }
 
+        # This is where we call the function
+        cmd_output = send_activity_warning(self)
+
+        # Now check our values
+        self.assertEqual(expected_cmd_output, cmd_output)
     
 if __name__ == '__main__':
     unittest.main()
