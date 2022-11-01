@@ -47,6 +47,37 @@ def enable_activity_warnings(self):
     }
     return cmd_output
 
+def disable_activity_warnings(self):
+# TODO : actually write the function. This is just for creating unit tests
+    payload = self.payload
+
+    if payload["text"] == "":
+        # Payload is empty, disable indefinitely
+        downtime_response = "Activity warnings disabled indefinitely."
+    else:
+        # We were given a downtime for activity warnings, set accordingly
+        downtime_response = "Activity warnings disabled for " + payload.text + "."
+
+    cmd_output ={
+    "blocks": [
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "*Disabled activity warnings.*"
+        }
+    },
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": downtime_response
+                }
+            }
+        ]
+    }
+    return cmd_output
+
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True)
