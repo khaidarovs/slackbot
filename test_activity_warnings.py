@@ -1,7 +1,7 @@
 import unittest
 from bot import *
 
-# Filename: test_activity_warning.py
+# Filename: test_activity_warnings.py
 # 
 # Purpose: Test suite containing unit tests for the functionality of the
 # activity warnings of the Slack Bot
@@ -55,7 +55,9 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         }
         # This is where we call the function
         cmd_output = enable_activity_warnings(self)
+        # Now check our values
         self.assertEqual(self.payload, {cmd_output, expected_cmd_output})
+        self.assertTrue(activity_warnings_enabled)
     
     # This test case tests the functionality of the function
     # disable_activity_warnings(), where activity warnings are disabled
@@ -102,12 +104,14 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         }
         # This is where we call the function
         cmd_output = disable_activity_warnings(self)
+        # Now check our values
         self.assertEqual(self.payload, {cmd_output, expected_cmd_output})
-    
+        self.assertFalse(activity_warnings_enabled)
+        self.assertEqual("", activity_warnings_downtime)
     # This test case tests the functionality of the function
     # disable_activity_warnings(), where activity warnings are disabled
     # for a specified definite downtime
-    def test_disable_activity_warnings_definite(self):
+    def test_disable_activity_warnings_definite_minutes(self):
         # First let's set input of the slash command
         slash_cmd = {
             "token":"test_token_1",
@@ -118,7 +122,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             "user_id":"U2147483697",
             "user_name":"Test_User_1",
             "command":"/disable_activity_warnings",
-            "text":"1d",
+            "text":"3d",
             "response_url":"https://hooks.slack.com/commands/1234/5678",
             "trigger_id":"13345224609.738474920.8088930838d88f008e0",
             "api_app_id":"A123456"
@@ -149,6 +153,154 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         }
         # This is where we call the function
         cmd_output = disable_activity_warnings(self)
+        # Now check our values
         self.assertEqual(self.payload, {cmd_output, expected_cmd_output})
+        self.assertEqual("3d", activity_warnings_downtime)
+    
+    # This test case is for the set_activity_warning_threshold function, and 
+    # tests to make sure the message returned by the bot is correct
+    def test_set_activity_warnings_threshold(self):
+    # First let's set input of the slash command
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"C2147483705",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/set_activity_warning_threshold",
+            "text":"10",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = {slash_cmd}
+        # Now we indicate our expected output
+        # Note: this is an ephemeral message. This message will only be visible
+        # To the user who called the command
+        expected_cmd_output = {
+        "blocks": [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Set activity warning threshold to 10.*"
+            }
+        }
+            ]
+        }
+        # This is where we call the function
+        cmd_output = set_activity_warnings_threshold(self)
+        # Now check our values
+        self.assertEqual(expected_cmd_output, cmd_output)
+        self.assertEqual(10, activity_warnings_threshold)
+    
+    # This test case is for set_activity_warning_content function where 
+    # no text is given (reset to original)
+    def test_set_activity_warnings_content(self):
+    # First let's set input of the slash command
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"C2147483705",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/set_activity_warning_content",
+            "text":"",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = {slash_cmd}
+        # Now we indicate our expected output
+        # Note: this is an ephemeral message. This message will only be visible
+        # To the user who called the command
+        expected_cmd_output ={
+        "blocks": [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Set activity warnings content to:*"
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": CONST_activity_warnings_default_content
+                    }
+                }
+            ]
+        }
+        # This is where we call the function
+        cmd_output = set_activity_warnings_content(self)
+        # Now check our values
+        self.assertEqual(expected_cmd_output, cmd_output)
+        self.assertEqual(activity_warnings_content, CONST_activity_warnings_default_content)
+    
+    # This test case is for set_activity_warning_content function where 
+    # text is given 
+    def test_set_activity_warnings_content(self):
+    # First let's set input of the slash command
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"C2147483705",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/set_activity_warning_content",
+            "text":"lol",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = {slash_cmd}
+        # Now we indicate our expected output
+        # Note: this is an ephemeral message. This message will only be visible
+        # To the user who called the command
+        expected_cmd_output ={
+        "blocks": [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Set activity warnings content to:*"
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "lol"
+                    }
+                }
+            ]
+        }
+        # This is where we call the function
+        cmd_output = set_activity_warnings_content(self)
+        # Now check our values
+        self.assertEqual(expected_cmd_output, cmd_output)
+        self.assertEqual(activity_warnings_content, "lol")
+
+    # This test case is for check_activity, a function called by the script 
+    # that checks how many messages have been sent in a channel in the past 24hr
+    def test_check_activity(self):
+        # Set what we expect
+        expected_cmd_output = 10
+        
+        # This is where we call the function
+        cmd_output = check_activity(self)
+
+        # Now check our values
+        self.assertEqual(expected_cmd_output, cmd_output)
+
+
+    
 if __name__ == '__main__':
     unittest.main()

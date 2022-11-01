@@ -23,10 +23,25 @@ slack_event_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/ev
 # console.
 web_client = WebClient(token=os.environ['BOT_TOKEN'])
 
+# Variables for the bot
+
+# Activity Warning Variables
+activity_warnings_enabled = False
+activity_warnings_threshold = 5
+activity_warnings_downtime = ""; # empty str if indefinite
+activity_warnings_content = "Let's get more active!"
+CONST_activity_warnings_default_content = "Let's get more active!"
+
 # Functions we'd implement would be here.
 
 def enable_activity_warnings(self):
 # TODO : actually write the function. This is just for creating unit tests
+    threshold_text = "Activity warning threshold is set to " 
+    + str(activity_warnings_threshold)
+    if activity_warnings_threshold == 5:
+        threshold_text += " (default)."
+    else:
+        threshold_text += "."
     cmd_output ={
     "blocks": [
     {
@@ -40,11 +55,12 @@ def enable_activity_warnings(self):
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": "Activity warning threshold is set to 5 (default)."
+            "text": threshold_text
                 }
             }
         ]
     }
+    activity_warnings_enabled = True
     return cmd_output
 
 def disable_activity_warnings(self):
@@ -54,10 +70,11 @@ def disable_activity_warnings(self):
     if payload["text"] == "":
         # Payload is empty, disable indefinitely
         downtime_response = "Activity warnings disabled indefinitely."
+        activity_warnings_downtime = ""
     else:
         # We were given a downtime for activity warnings, set accordingly
-        downtime_response = "Activity warnings disabled for " + payload.text + "."
-
+        downtime_response = "Activity warnings disabled for " + payload["text"] + "."
+        activity_warnings_downtime = "3d" #TODO fix this when implementing
     cmd_output ={
     "blocks": [
     {
@@ -76,8 +93,61 @@ def disable_activity_warnings(self):
             }
         ]
     }
+    activity_warnings_enabled = False
     return cmd_output
 
+def set_activity_warnings_threshold(self):
+# TODO : actually write the function. This is just for creating unit tests
+    payload = self.payload
+
+    response_text = "*Set activity warning threshold to " + str(payload["text"]) + ".*"
+    cmd_output = {
+    "blocks": [
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": response_text
+        }
+    }
+        ]
+    }
+    activity_warnings_threshold = str(payload.text)
+    return cmd_output
+
+def set_activity_warnings_content(self):
+# TODO : actually write the function. This is just for creating unit tests
+    payload = self.payload
+
+    if payload["text"] == "":
+        # Set to default
+        activity_warnings_content = CONST_activity_warnings_default_content
+    else:
+        # Set to that indicated by user
+        activity_warnings_content = payload["text"]
+    cmd_output ={
+    "blocks": [
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "*Set activity warnings content to:*"
+        }
+    },
+    {
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": activity_warnings_content
+                }
+            }
+        ]
+    }
+    return cmd_output
+
+def check_activity(self):
+# TODO : actually write the function. This is just for creating unit tests
+    return 10
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True)
