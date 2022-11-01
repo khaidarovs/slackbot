@@ -81,14 +81,55 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         # Now we indicate our expected output
         # Note: this is an ephemeral message. This message will only be visible
         # To the user who called the command
-        if payload["text"] == "":
-            # Payload is empty, disable indefinitely
-            downtime_response = "Activity warnings disabled indefinitely."
-        else:
-            # We were given a downtime for activity warnings, set accordingly
-            downtime_response = "Activity warnings disabled for " + payload.text + "."
 
-        cmd_output ={
+        expected_cmd_output ={
+        "blocks": [
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "*Disabled activity warnings.*"
+            }
+        },
+        {
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "Activity warnings disabled indefinitely."
+                    }
+                }
+            ]
+        }
+        # This is where we call the function
+        cmd_output = disable_activity_warnings(self)
+        self.assertEqual(self.payload, {cmd_output, expected_cmd_output})
+    
+    # This test case tests the functionality of the function
+    # disable_activity_warnings(), where activity warnings are disabled
+    # for a specified definite downtime
+    def test_disable_activity_warnings_definite(self):
+        # First let's set input of the slash command
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"C2147483705",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/disable_activity_warnings",
+            "text":"1d",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = {slash_cmd}
+        payload = self.payload
+        # Now we indicate our expected output
+        # Note: this is an ephemeral message. This message will only be visible
+        # To the user who called the command
+        downtime_response = "Activity warnings disabled for " + payload.text + "."
+        expected_cmd_output ={
         "blocks": [
         {
             "type": "section",
@@ -109,6 +150,5 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         # This is where we call the function
         cmd_output = disable_activity_warnings(self)
         self.assertEqual(self.payload, {cmd_output, expected_cmd_output})
-
 if __name__ == '__main__':
     unittest.main()
