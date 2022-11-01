@@ -4,32 +4,26 @@ import unittest
 # We can get rid of these once we implement them. -Sabine
 
 class TestOnboarding(unittest.TestCase):
-    def test_member_joined_workspace(self):
-        '''
-            ngl I'm not quite sure what this is/why it's needed in addition to 
-            welcome_new_user- it seemed to me like this is an event, not a function
-            we have to implement? Am I wrong?
-        '''
-        pass
-
     def test_welcome_new_user(self):
-        '''
-        Test cases:
-            - team_join event
-        '''
-        pass
+        msg = "Welcome to StudyRoom! To join a class, message me with the command `/join_class SUBJ-#####` (for example, `/join_class CMSC-22001), and I'll add you the study group."
+        user = test_user 
+        
+        # Function should return True when message is successfully sent
+        self.assertTrue(welcome_new_user()) 
 
-    def test_slash_class_input(self):
-        '''
-        Test cases:
-            - valid slash command with existing class
-            - valid slash command with non-existing class
-            - invalid slash command
+        #check what was sent somehow and verify that it matches msg
 
-            Note - why is this needed as a middleman between handle_slash_command
-                   and check_classes? What's the output of handle_slash_command?
+    def test_handle_onboarding(self):
+        ''' 
+        Uses input from /handle_slash_command to first check if class exists, then add student to class.
+        - also handles creating class if it doesn't exist
+
+        Calls check_channel, create_channel (where applicable), join_channel
+
+        I think we can assume that the class will be formatted well based on discord notes.
+
+        Returns True on success, error code on failure.
         '''
-        pass
 
     def test_check_channel(self):
         '''
@@ -37,35 +31,15 @@ class TestOnboarding(unittest.TestCase):
             - behavior when class channel doesn't exist
             - behavior when class channel does exist
         '''
-        pass
 
-    def test_output_msg_class_channels(self):
-        '''
-        Test cases:
-            - behavior when class channel exists
-            - behavior when class channel doesn't exist
-        '''
-        pass
+        new_channel = "CMSC-15400"
+        existing_channel = "CMSC-22001"
+        lwr_existing_channel = "cmsc-22001"
+        channel_obj = client.conversations_create(name=existing_channel, is_private=True)
 
-    def test_slash_create_channel(self):
-        '''
-        Test cases:
-            - valid class as input
-            - invalid class as input
-
-            Note - should we be instructing the user to do this command when
-                   a class doesn't exist, or should the bot just run this 
-                   command on its own in the background?
-        '''
-        pass
-
-    def test_join_channel(self):
-        '''
-        Test cases:
-            - existing channels
-            - nonexisting channels
-        '''
-        pass
+        self.assertFalse(check_channel(new_channel))
+        self.assertTrue(check_channel(existing_channel))
+        self.assertTrue(check_channel(lwr_existing_channel))
 
 if __name__ == '__main__':
     unittest.main()
