@@ -17,11 +17,13 @@ bot_app = Flask(__name__)
 # of the Slack workspace developer console. By "/slack/events" is the endpoint that you would
 # attach to the end of the ngrok link when inputting the request URL in the "Event Subscriptions"
 # -> "Enable Events" section of the Slack workspace developer console.  
-slack_event_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", bot_app)
+
+# slack_event_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", bot_app)
 
 # You can find the bot token in the "OAuth & Permissions" section of the Slack workspace developer 
 # console.
-web_client = WebClient(token=os.environ['BOT_TOKEN'])
+
+# web_client = WebClient(token=os.environ['BOT_TOKEN'])
 
 # Variables for the bot
 
@@ -36,7 +38,7 @@ activity_warnings_content = "Let's get more active!"
 def enable_activity_warnings(self):
 # TODO : actually write the function. This is just for creating unit tests
     threshold_text = "Activity warning threshold is set to " 
-    + str(activity_warnings_threshold)
+    threshold_text += str(activity_warnings_threshold)
     if activity_warnings_threshold == 5:
         threshold_text += " (default)."
     else:
@@ -111,7 +113,7 @@ def set_activity_warnings_threshold(self):
     }
         ]
     }
-    activity_warnings_threshold = str(payload.text)
+    activity_warnings_threshold = str(payload["text"])
     return cmd_output
 
 def set_activity_warnings_content(self):
