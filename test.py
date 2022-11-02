@@ -40,6 +40,8 @@ class TestMeetupMessage(unittest.TestCase):
                 #tests whether multiple values, in the absence of a unit, are added together and then
                 #return value is converted to number of seconds per minute.
                 self.assertEqual(meetup("30 30"),3600000)
+                #check to see if the function works properly with the optional location parameter
+                self.assertEqual(meetup("60m", "Zoom"),3600)
 
         def test_waitminute(self):
                 self.payload =
