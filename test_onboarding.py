@@ -1,5 +1,5 @@
 import unittest
-from bot import *
+import onboarding
 
 class TestOnboarding(unittest.TestCase):
     def test_welcome_new_user(self):
