@@ -24,6 +24,60 @@ slack_event_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/ev
 web_client = WebClient(token=os.environ['BOT_TOKEN'])
 
 # Functions we'd implement would be here.
+"""
+Checks if the payload is valid (i.e. has all the fields that we need for processing).
+"""
+def check_valid_payload(payload):
+    print("check_valid_payload is being tested\n")
+    valid = True
+    return valid
+
+"""
+Parses the payload and returns a shortened dictionary object with the relevant information.
+In case the subtype is irrelevant OR the user ID is the same as the bot ID, 
+meaning the event was triggered by a bot replying in the chat, return an empty dictionary.
+"""
+def parse_payload(payload, bot_id):
+    print("parse_payload is being tested\n")
+    info = {}
+    if (payload.get("user") == bot_id):
+        return info
+    else:
+        info = payload
+    return info
+
+def check_id(payload, bot_id):
+    print("check_id is being tested\n")
+    rv = True
+    if (payload.get("channel").get("creator") == bot_id):
+        rv = False
+    return rv
+
+@slack_event_adapter.on('message')
+def handle_message_event(payload):
+    #TODO
+    #Check if the payload is valid
+    #If it is, parse the payload and return a useful information dictionary
+    if (check_valid_payload(payload)):
+        bot_id = "1"
+        info_dict = parse_payload(payload, bot_id)
+        #Call the relevant function and pass info_dict as parameter    
+    return Response(status=501)
+
+@slack_event_adapter.on('channel_created')
+def handle_workspace_channels(payload):
+    #check if the person who created the channel is the bot or a person
+    #to delete the channel the function should make an API call
+    #look at payload["channel"]["creator"]
+    #to get the bot id - do an api call
+    bot_id = "1"
+    if (check_id(payload, bot_id)):
+        #do nothing
+        pass
+    else:
+        #delete the channel
+        pass
+    return Response(status=501)
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
