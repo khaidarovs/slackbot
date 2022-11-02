@@ -2,18 +2,6 @@ import unittest
 import time
 from firebase import Firebase
 
-# Make seperate classes depending on what particular features you want to test.
-# Could also make multiple test files. This is just an example class I made,
-# feel free to remove or delete. Run the tests here via this command:
-# python -m unittest test.py
-class TestMessageHandlingExample(unittest.TestCase):
-    # Expected JSON responses for the relevant events you want to handle for your feature can be
-    # found here: https://api.slack.com/events?filter=Events
-    def setUp(self):
-        self.payload = {}
-    def test_function(self):
-        self.payload = {"hi":"hi"}
-        self.assertEqual(self.payload, {"hi":"hi"})
 #this first set of unit tests makes sure that the formatting of the time and calculating the value in seconds
 #works correctly. "s" after a numerical value represents seconds, "d" represents days, and "h" represents hours, and "m" represents. 
 #All other letters that are used will cause the number they are after to default to minutes. The omission of s,d,h,m, will cause the input value
