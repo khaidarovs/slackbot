@@ -1,18 +1,13 @@
 import unittest
-
-# I wrote comments to outline what we should look to test in each func as a jumping off point.
-# We can get rid of these once we implement them. -Sabine
+from bot import *
 
 class TestOnboarding(unittest.TestCase):
     def test_welcome_new_user(self):
-        msg_sent = "Welcome to StudyRoom! To join a class, message me with the command `/join_class SUBJ-#####` (for example, `/join_class CMSC-22001), and I'll add you the study group."
-        user = test_user 
-        
         # Function should return True when message is successfully sent
         self.assertTrue(welcome_new_user())
 
         #Check that the sent message is the same as the received message
-        #Event of when a DM channel gets a message  
+        #Triggered when Slackbot gets a direct message  
         msg_event_received = {
             "token": "one-long-verification-token",
             "team_id": "T061EG9R6",
@@ -34,7 +29,7 @@ class TestOnboarding(unittest.TestCase):
             "event_time": 1355517523
         }
 
-        #The message received by the user is access through the above JSON
+        #The message received by the user is accessed through the above JSON
         msg_received =  msg_event_received['event'][0]['text']
 
         #Check that the message sent is equal to the message received
@@ -44,16 +39,6 @@ class TestOnboarding(unittest.TestCase):
 
 
     def test_handle_onboarding(self):
-        ''' 
-        Uses input from /handle_slash_command to first check if class exists, then add student to class.
-        - also handles creating class if it doesn't exist
-
-        Calls check_channel, create_channel (where applicable), join_channel
-
-        I think we can assume that the class will be formatted well based on discord notes.
-
-        Returns True on success, error code on failure.
-        '''
         class_name = 'CMSC-15400'
         created_channel = {
             "type": "channel_created",
@@ -74,7 +59,7 @@ class TestOnboarding(unittest.TestCase):
             "inviting_team": {
             "id": "T12345678",
             "name": "CMSC-15400",
-            "icon": {...},
+            "icon": "https://placekitten.com/24/24",
             "is_verified": false,
             "domain": "corgis",
             "date_created": 1480946400
@@ -195,18 +180,14 @@ class TestOnboarding(unittest.TestCase):
         self.assertTrue(join_channel())
         #Checks that the user was invited to the channel for their class
         self.assertEqual(join_channel(class_name).payload, invite)
+
+        #there should be an additional test case for an existing class.
         
     def test_check_channel(self):
-        '''
-        Test cases:
-            - behavior when class channel doesn't exist
-            - behavior when class channel does exist
-        '''
-
         new_channel = "CMSC-15400"
         existing_channel = "CMSC-22001"
         lwr_existing_channel = "cmsc-22001"
-        channel_obj = client.conversations_create(name=existing_channel, is_private=True)
+        channel_obj = web_client.conversations_create(name=existing_channel, is_private=True)
 
         self.assertFalse(check_channel(new_channel))
         self.assertTrue(check_channel(existing_channel))
