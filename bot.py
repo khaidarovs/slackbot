@@ -50,16 +50,15 @@ activity_warnings_content = "Let's get more active!"
 # - Sends an ephemeral message back to the user indicating necessary information
 # - Enables activity warnings in the channel
 
-@bot_app.route('/enable_activity_warnings', methods = ['POST'])
-def enable_activity_warnings():
-    # Get data from POST request
-    payload = request.get_json()
+def enable_activity_warnings(self):
+    # Get data
+    payload = self.payload
 
     # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
         is_test = True
-    # Extract data from POST request
+    # Extract data from payload
     user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
 
@@ -93,24 +92,18 @@ def enable_activity_warnings():
     }
     if not is_test: # From Slack, not from Tests
         retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
-    else:
-        # This was called by a test
-        return cmd_output
-    # check the result of the message send
-    if retval["ok"]:
-        activity_warnings_enabled = True
-    return Response(), 200
+    activity_warnings_enabled = True
+    return cmd_output
 
-@bot_app.route('/disable_activity_warnings', methods = ['POST'])
-def disable_activity_warnings():
-    # Get data from POST request
-    payload = request.get_json()
+def disable_activity_warnings(self):
+    # Get data
+    payload = self.payload
 
     # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
         is_test = True
-    # Extract data from POST request
+    # Extract data 
     user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
 
@@ -126,6 +119,7 @@ def disable_activity_warnings():
         if finalchar != -1:
             downtime_response = "Activity warnings disabled for " + payload["text"] + "."
         activity_warnings_downtime = "3d" 
+    fallback_msg = "Disabled activity warnings. " + downtime_response
     cmd_output ={
     "blocks": [
     {
@@ -144,6 +138,16 @@ def disable_activity_warnings():
             }
         ]
     }
+    # Send msg to user
+    msg_construct = {
+        "token":BOT_TOKEN,
+        "channel":channel_id,
+        "text":fallback_msg,
+        "user":user_id,
+        "blocks":cmd_output
+    }
+    if not is_test: # From Slack, not from Tests
+        retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
     activity_warnings_enabled = False
     return cmd_output
 
