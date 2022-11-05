@@ -119,25 +119,18 @@ def disable_activity_warnings(self):
         if finalchar != -1:
             downtime_response = "Activity warnings disabled for " + payload["text"] + "."
         activity_warnings_downtime = "3d" 
+    activity_warnings_enabled = False
     fallback_msg = "Disabled activity warnings. " + downtime_response
-    cmd_output ={
-    "blocks": [
-    {
+    cmd_output ={"blocks": [{
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": "*Disabled activity warnings.*"
-        }
-    },
-    {
+            "text": "*Disabled activity warnings.*"}},{
         "type": "section",
         "text": {
             "type": "mrkdwn",
             "text": downtime_response
-                }
-            }
-        ]
-    }
+        }}]}
     # Send msg to user
     msg_construct = {
         "token":BOT_TOKEN,
@@ -148,25 +141,40 @@ def disable_activity_warnings(self):
     }
     if not is_test: # From Slack, not from Tests
         retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
-    activity_warnings_enabled = False
     return cmd_output
 
 def set_activity_warnings_threshold(self):
-# TODO : actually write the function. This is just for creating unit tests
+    # Get data
     payload = self.payload
 
+    # First check if this is a test or not
+    is_test = False
+    if payload.get('token') == "test_token_1":
+        is_test = True
+    # Extract data from payload
+    user_id = payload.get('user_id')
+    channel_id = payload.get('channel_id')
+    # Parse message to send
     response_text = "*Set activity warning threshold to " + str(payload["text"]) + ".*"
-    cmd_output = {
-    "blocks": [
-    {
+    fallback_msg = response_text
+    cmd_output = {"blocks": [{
         "type": "section",
         "text": {
             "type": "mrkdwn",
             "text": response_text
-        }
+    }}]}
+    # Send msg to user
+        # Send msg to user
+    msg_construct = {
+        "token":BOT_TOKEN,
+        "channel":channel_id,
+        "text":fallback_msg,
+        "user":user_id,
+        "blocks":cmd_output
     }
-        ]
-    }
+    if not is_test: # From Slack, not from Tests
+        retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
+    # Set values
     activity_warnings_threshold = str(payload["text"])
     return cmd_output
 
