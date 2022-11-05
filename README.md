@@ -1,5 +1,6 @@
 # slackbot
 ## Running the tests
+**TESTS NOT CURRENTLY WORKING IN THIS BRANCH DUE TO ENV VARIABLES, WILL BE FIXED SOON** <br />
 First create the server:<br />
     `python3 bot.py`<br />
 Then, to run these tests, use the following command:<br />

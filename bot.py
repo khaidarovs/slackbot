@@ -19,8 +19,8 @@ bot_app = Flask(__name__)
 # of the Slack workspace developer console. By "/slack/events" is the endpoint that you would
 # attach to the end of the ngrok link when inputting the request URL in the "Event Subscriptions"
 # -> "Enable Events" section of the Slack workspace developer console.  
-SIGNING_SECRET = '4f55f82b17045b9e4935cdf9005d7728'
-BOT_TOKEN = 'xoxb-4327402076691-4351206513808-yEkXqSDQNrpdsz7AawVHI2RV'
+SIGNING_SECRET = os.environ['SIGNING_SECRET']
+BOT_TOKEN = os.environ['BOT_TOKEN']
 slack_event_adapter = SlackEventAdapter(SIGNING_SECRET, "/slack/events", bot_app)
 
 # You can find the bot token in the "OAuth & Permissions" section of the Slack workspace developer 
@@ -101,19 +101,31 @@ def enable_activity_warnings():
         activity_warnings_enabled = True
     return Response(), 200
 
+@bot_app.route('/disable_activity_warnings', methods = ['POST'])
+def disable_activity_warnings():
+    # Get data from POST request
+    payload = request.get_json()
 
-def disable_activity_warnings(self):
-# TODO : actually write the function. This is just for creating unit tests
-    payload = self.payload
+    # First check if this is a test or not
+    is_test = False
+    if payload.get('token') == "test_token_1":
+        is_test = True
+    # Extract data from POST request
+    user_id = payload.get('user_id')
+    channel_id = payload.get('channel_id')
 
-    if payload["text"] == "":
+    # Parse message to send
+    user_given_text = payload["text"]
+    if user_given_text == "":
         # Payload is empty, disable indefinitely
         downtime_response = "Activity warnings disabled indefinitely."
         activity_warnings_downtime = ""
     else:
         # We were given a downtime for activity warnings, set accordingly
-        downtime_response = "Activity warnings disabled for " + payload["text"] + "."
-        activity_warnings_downtime = "3d" #TODO fix this when implementing
+        finalchar = user_given_text[-1]
+        if finalchar != -1:
+            downtime_response = "Activity warnings disabled for " + payload["text"] + "."
+        activity_warnings_downtime = "3d" 
     cmd_output ={
     "blocks": [
     {
