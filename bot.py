@@ -4,7 +4,7 @@ import os
 from slack import WebClient
 from flask import Flask, request, Response
 from slackeventsapi import SlackEventAdapter
-from firebase import Firebase
+# from firebase import Firebase
 
 
 # Load the tokens from the ".env" file, which are set up as environment variables. 
@@ -19,14 +19,15 @@ bot_app = Flask(__name__)
 # of the Slack workspace developer console. By "/slack/events" is the endpoint that you would
 # attach to the end of the ngrok link when inputting the request URL in the "Event Subscriptions"
 # -> "Enable Events" section of the Slack workspace developer console.  
-
-slack_event_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", bot_app)
+SIGNING_SECRET = '4f55f82b17045b9e4935cdf9005d7728'
+BOT_TOKEN = 'xoxb-4327402076691-4351206513808-yEkXqSDQNrpdsz7AawVHI2RV'
+slack_event_adapter = SlackEventAdapter(SIGNING_SECRET, "/slack/events", bot_app)
 
 # You can find the bot token in the "OAuth & Permissions" section of the Slack workspace developer 
 # console.
 
-BOT_TOKEN = 'BOT_TOKEN'
-web_client = WebClient(token=os.environ['BOT_TOKEN'])
+
+web_client = WebClient(token=BOT_TOKEN)
 
 # Variables for the bot
 
@@ -48,15 +49,21 @@ activity_warnings_content = "Let's get more active!"
 # OUTPUT:
 # - Sends an ephemeral message back to the user indicating necessary information
 # - Enables activity warnings in the channel
-@app.route('/enable-activity-warnings', methods = ['POST'])
+
+@bot_app.route('/enable_activity_warnings', methods = ['POST'])
 def enable_activity_warnings():
     # Get data from POST request
-    payload = request.form
+    payload = request.get_json()
+
+    # First check if this is a test or not
+    is_test = False
+    if payload.get('token') == "test_token_1":
+        is_test = True
     # Extract data from POST request
     user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
 
-    # Parse string
+    # Parse message to send
     threshold_text = "Activity warning threshold is set to " 
     threshold_text += str(activity_warnings_threshold)
     if activity_warnings_threshold == 5:
@@ -64,34 +71,36 @@ def enable_activity_warnings():
     else:
         threshold_text += "."
     fallback_msg = "Enabled activity warnings. " + threshold_text
-    cmd_output ={
-    "blocks": [
-    {
+    cmd_output ={"blocks": [{
         "type": "section",
         "text": {
             "type": "mrkdwn",
             "text": "*Enabled activity warnings.*"
-        }
-    },
-    {
+    }},{
         "type": "section",
         "text": {
             "type": "mrkdwn",
             "text": threshold_text
-                }
-            }
-        ]
-    }
+    }}]}
+
     # Send msg to user
-    retval = web_client.chat_postEphemeral(BOT_TOKEN, channel_id, fallback_msg,
-    user_id, blocks = cmd_output) # https://api.slack.com/methods/chat.postEphemeral
-    if not retval["ok"]:
-        # An error occurred!
-        return False, None
+    msg_construct = {
+        "token":BOT_TOKEN,
+        "channel":channel_id,
+        "text":fallback_msg,
+        "user":user_id,
+        "blocks":cmd_output
+    }
+    if not is_test: # From Slack, not from Tests
+        retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
     else:
-        # All good
+        # This was called by a test
+        return cmd_output
+    # check the result of the message send
+    if retval["ok"]:
         activity_warnings_enabled = True
-        return True, cmd_output    
+    return Response(), 200
+
 
 def disable_activity_warnings(self):
 # TODO : actually write the function. This is just for creating unit tests
