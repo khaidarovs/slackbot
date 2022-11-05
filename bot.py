@@ -83,10 +83,15 @@ def enable_activity_warnings():
         ]
     }
     # Send msg to user
-    web_client.chat_postEphemeral(BOT_TOKEN, channel_id, fallback_msg,
+    retval = web_client.chat_postEphemeral(BOT_TOKEN, channel_id, fallback_msg,
     user_id, blocks = cmd_output) # https://api.slack.com/methods/chat.postEphemeral
-    activity_warnings_enabled = True
-    return cmd_output
+    if not retval["ok"]:
+        # An error occurred!
+        return False, None
+    else:
+        # All good
+        activity_warnings_enabled = True
+        return True, cmd_output    
 
 def disable_activity_warnings(self):
 # TODO : actually write the function. This is just for creating unit tests
