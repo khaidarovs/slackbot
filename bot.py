@@ -248,8 +248,6 @@ def check_activity(self):
     is_test = False
     if payload.get('token') == "test_token_1":
         is_test = True
-    if is_test:
-        return 10
     
     # Extract data from payload
     channel_id = payload.get('channel_id')
@@ -260,7 +258,10 @@ def check_activity(self):
     "oldest":time_1dayago
     # "limit":activity_warnings_threshold.get()
     }
-    retval = web_client.conversations_history(**history_query)
+    if is_test:
+        retval = {"messages":[{},{},{},{},{},{},{},{},{},{}]} # 10 msgs
+    else:
+        retval = web_client.conversations_history(**history_query)
     conversation_history = retval["messages"]
     
     return len(conversation_history)
