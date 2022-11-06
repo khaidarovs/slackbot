@@ -4,14 +4,21 @@ import os
 from slack import WebClient
 from flask import Flask, request, Response
 from slackeventsapi import SlackEventAdapter
-# from firebase import Firebase
+import firebase_admin
+from firebase_admin import credentials, db
 
+load_dotenv()
+
+cred = credentials.Certificate(os.environ['SVC_ACCT_KEY'])
+firebase_admin.initialize_app(cred, {
+    'databaseURL': os.environ['DBURL']
+})
+ref = db.reference('activity_warning_vars/')
 
 # Load the tokens from the ".env" file, which are set up as environment variables. 
 # You'll need the signing secret and bot token from the Slack developer console 
 # for a workspace, which you put in a file you make called ".env". It prevents a 
 # security risk related to revealing secret keys in public. 
-load_dotenv()
 
 bot_app = Flask(__name__)
 
@@ -26,16 +33,15 @@ slack_event_adapter = SlackEventAdapter(SIGNING_SECRET, "/slack/events", bot_app
 # You can find the bot token in the "OAuth & Permissions" section of the Slack workspace developer 
 # console.
 
-
 web_client = WebClient(token=BOT_TOKEN)
 
 # Variables for the bot
 
 # Activity Warning Variables
-activity_warnings_enabled = False
-activity_warnings_threshold = 5
-activity_warnings_downtime = ""; # empty str if indefinite
-activity_warnings_content = "Let's get more active!"
+activity_warnings_enabled = ref.child('activity_warnings_enabled')
+activity_warnings_threshold = ref.child('activity_warnings_threshold')
+activity_warnings_downtime = ref.child('activity_warnings_downtime')
+activity_warnings_content = ref.child('activity_warnings_content')
 
 # Functions we'd implement would be here.
 
@@ -63,9 +69,8 @@ def enable_activity_warnings(self):
     channel_id = payload.get('channel_id')
 
     # Parse message to send
-    threshold_text = "Activity warning threshold is set to " 
-    threshold_text += str(activity_warnings_threshold)
-    if activity_warnings_threshold == 5:
+    threshold_text = "Activity warning threshold is set to "  + activity_warnings_threshold.get()
+    if activity_warnings_threshold.get() == 5:
         threshold_text += " (default)."
     else:
         threshold_text += "."
@@ -92,7 +97,9 @@ def enable_activity_warnings(self):
     }
     if not is_test: # From Slack, not from Tests
         retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
-    activity_warnings_enabled = True
+    ref.update({
+        'activity_warnings_enabled':True
+    })
     return cmd_output
 
 def disable_activity_warnings(self):
@@ -112,14 +119,20 @@ def disable_activity_warnings(self):
     if user_given_text == "":
         # Payload is empty, disable indefinitely
         downtime_response = "Activity warnings disabled indefinitely."
-        activity_warnings_downtime = ""
+        ref.update({
+        'activity_warnings_downtime':""
+        })
     else:
         # We were given a downtime for activity warnings, set accordingly
         finalchar = user_given_text[-1]
         if finalchar != -1:
             downtime_response = "Activity warnings disabled for " + payload["text"] + "."
-        activity_warnings_downtime = "3d" 
-    activity_warnings_enabled = False
+        ref.update({
+        'activity_warnings_downtime':payload["text"]
+        })
+    ref.update({
+    'activity_warnings_enabled':False
+    })
     fallback_msg = "Disabled activity warnings. " + downtime_response
     cmd_output ={"blocks": [{
         "type": "section",
@@ -164,7 +177,6 @@ def set_activity_warnings_threshold(self):
             "text": response_text
     }}]}
     # Send msg to user
-        # Send msg to user
     msg_construct = {
         "token":BOT_TOKEN,
         "channel":channel_id,
@@ -175,37 +187,56 @@ def set_activity_warnings_threshold(self):
     if not is_test: # From Slack, not from Tests
         retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
     # Set values
-    activity_warnings_threshold = str(payload["text"])
+    ref.update({
+    'activity_warnings_threshold':str(payload["text"])
+    })
     return cmd_output
 
 def set_activity_warnings_content(self):
-# TODO : actually write the function. This is just for creating unit tests
+    # Get dataa
     payload = self.payload
 
+    # First check if this is a test or not
+    is_test = False
+    if payload.get('token') == "test_token_1":
+        is_test = True
+    # Extract data from payload
+    user_id = payload.get('user_id')
+    channel_id = payload.get('channel_id')
+
+    # Parse message to send
     if payload["text"] == "":
         # Set to default
-        activity_warnings_content = "Let's get more active!"
+        ref.update({
+        'activity_warnings_content':"Let's get more active!"
+        })
     else:
         # Set to that indicated by user
-        activity_warnings_content = payload["text"]
-    cmd_output ={
-    "blocks": [
-    {
+        ref.update({
+        'activity_warnings_content':payload["text"]
+        })
+    fallback_msg = "Set activity warnings content to:\n" + activity_warnings_content.get()
+    cmd_output ={"blocks": [{
         "type": "section",
         "text": {
             "type": "mrkdwn",
             "text": "*Set activity warnings content to:*"
-        }
-    },
-    {
+        }},{
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": activity_warnings_content
-                }
-            }
-        ]
+            "text": activity_warnings_content.get()
+                }}]}
+    # Send msg to user
+    msg_construct = {
+        "token":BOT_TOKEN,
+        "channel":channel_id,
+        "text":fallback_msg,
+        "user":user_id,
+        "blocks":cmd_output
     }
+    if not is_test: # From Slack, not from Tests
+        retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
     return cmd_output
 
 def check_activity(self):
@@ -213,21 +244,41 @@ def check_activity(self):
     return 10
 
 def send_activity_warning(self):
-# TODO : actually write the function. This is just for creating unit tests
-    cmd_output = {
-    "blocks": [
-    {
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": activity_warnings_content
-        }
+    # Get dataa
+    payload = self.payload
+
+    # First check if this is a test or not
+    is_test = False
+    if payload.get('token') == "test_token_1":
+        is_test = True
+    # Extract data from payload
+    user_id = payload.get('user_id')
+    channel_id = payload.get('channel_id')
+
+    cmd_output ={"blocks": [{
+    "type": "section",
+    "text": {
+        "type": "mrkdwn",
+        "text": "*Activity Warning Message*"
+    }},{
+    "type": "section",
+    "text": {
+        "type": "mrkdwn",
+        "text": activity_warnings_content.get()
+    }}]}
+    fallback_msg = activity_warnings_content.get()
+    msg_construct = {
+    "token":BOT_TOKEN,
+    "channel":channel_id,
+    "text":fallback_msg,
+    "blocks":cmd_output
     }
-        ]
-    }
+    if not is_test: # From Slack, not from Tests
+        retval = web_client.chat_postMessage(**msg_construct)
     return cmd_output
         
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True)
+
     
