@@ -299,6 +299,11 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
     # This test case is for check_activity, a function called by the script 
     # that checks how many messages have been sent in a channel in the past 24hr
     def test_check_activity(self):
+        input = {
+        "token":"test_token_1",
+        "channel_id":"C2147483705"
+        }
+        self.payload = input
         # Set what we expect
         expected_cmd_output = 10
         

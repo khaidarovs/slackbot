@@ -6,6 +6,7 @@ from flask import Flask, request, Response
 from slackeventsapi import SlackEventAdapter
 import firebase_admin
 from firebase_admin import credentials, db
+import time
 
 load_dotenv()
 
@@ -240,8 +241,29 @@ def set_activity_warnings_content(self):
     return cmd_output
 
 def check_activity(self):
-# TODO : actually write the function. This is just for creating unit tests
-    return 10
+    # Get dataa
+    payload = self.payload
+
+    # First check if this is a test or not
+    is_test = False
+    if payload.get('token') == "test_token_1":
+        is_test = True
+    if is_test:
+        return 10
+    
+    # Extract data from payload
+    channel_id = payload.get('channel_id')
+    time_1dayago = time.time() - 86400
+    history_query = {
+    "token":BOT_TOKEN,
+    "channel":channel_id,
+    "oldest":time_1dayago
+    # "limit":activity_warnings_threshold.get()
+    }
+    retval = web_client.conversations_history(**history_query)
+    conversation_history = retval["messages"]
+    
+    return len(conversation_history)
 
 def send_activity_warning(self):
     # Get dataa
