@@ -63,8 +63,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         cmd_output = enable_activity_warnings(self)
         # Now check our values
         self.assertEqual(cmd_output, expected_cmd_output)
-
-        # self.assertTrue(activity_warnings_enabled) uncomment for implementing
+        self.assertTrue(activity_warnings_enabled.get()) 
     
     # This test case tests the functionality of the function
     # disable_activity_warnings(), where activity warnings are disabled
@@ -114,8 +113,8 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         # Now check our values
         self.assertEqual(cmd_output, expected_cmd_output)
         # uncomment when implementing
-        # self.assertFalse(activity_warnings_enabled)
-        # self.assertEqual("", activity_warnings_downtime)
+        self.assertFalse(activity_warnings_enabled.get())
+        self.assertEqual("", activity_warnings_downtime.get())
     # This test case tests the functionality of the function
     # disable_activity_warnings(), where activity warnings are disabled
     # for a specified definite downtime
@@ -163,8 +162,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         cmd_output = disable_activity_warnings(self)
         # Now check our values
         self.assertEqual(cmd_output, expected_cmd_output)
-        # uncomment when implementing 
-        # self.assertEqual("3d", activity_warnings_downtime)
+        self.assertEqual("3d", activity_warnings_downtime.get())
     
     # This test case is for set_activity_warning_content function where 
     # no text is given (reset to original)
@@ -210,8 +208,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         cmd_output = set_activity_warnings_content(self)
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
-        # Uncomment when implementing
-        # self.assertEqual(activity_warnings_content, "Let's get more active!")
+        self.assertEqual(activity_warnings_content.get(), "Let's get more active!")
     
         # This test case is for the set_activity_warning_threshold function, and 
     # tests to make sure the message returned by the bot is correct
@@ -250,7 +247,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         cmd_output = set_activity_warnings_threshold(self)
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
-        # self.assertEqual(10, activity_warnings_threshold) #Uncomment when implementing
+        self.assertEqual("10", activity_warnings_threshold.get()) 
     
     # This test case is for set_activity_warning_content function where 
     # text is given 
@@ -297,7 +294,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
         # uncomment when implementing
-        # self.assertEqual(activity_warnings_content, "lol")
+        self.assertEqual(activity_warnings_content.get(), "lol")
 
     # This test case is for check_activity, a function called by the script 
     # that checks how many messages have been sent in a channel in the past 24hr
