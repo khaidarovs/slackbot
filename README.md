@@ -7,7 +7,7 @@ To run the tests, use the following command:<br />
 *Note:* <br />
 Running the bot requires access to the .env file and Firebase DB, which 
 contain sensitive information and cannot be posted on GitHub.
-Contact a SlackBot dev if you do not have these files<br />
+Contact a SlackBot dev if you do not have these files.<br />
 ## Functions tested
 These tests are unit tests for the *"Activity Warnings"* functionality of the 
 Slack Bot. This includes the following functions:<br />
