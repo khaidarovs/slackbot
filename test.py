@@ -1,12 +1,12 @@
 import unittest
 import time
+from bot import *
 #from firebase import Firebase
 
 # this first set of unit tests makes sure that the formatting of the time and calculating the value in seconds
 # works correctly. "s" after a numerical value represents seconds, "d" represents days, and "h" represents hours, and "m" represents.
 # All other letters that are used will cause the number they are after to default to minutes. The omission of s,d,h,m, will cause the input value
 # to default to minutes. Arbitrary numbers of spaces should also be valid, and any order of the seconds, minutes, etc. should be valid.
-
 
 class TestMeetupMessage(unittest.TestCase):
     def test_something(self):
@@ -44,7 +44,7 @@ class TestMeetupMessage(unittest.TestCase):
         # the "reminder" of db.reminder represents the contents of the database, which stores the timestamps
         # since nothing is entered in the database, this first test should return false, because there are no
         # objects within the database at all.
-        assertFalse(in_five(db.reminder))
+        self.assertFalse(in_five(db.reminder))
         # sets the timestamp of the payload to a value that is over five minutes from the current time.
         self.payload.ts = time.time() + 1000
         # enteres the d time value, the channel ID, and the message into the database.
@@ -52,23 +52,23 @@ class TestMeetupMessage(unittest.TestCase):
                      "reminder for meetup")
         # since d is not within five minutes of the current time, there are no times within the database
         # that are within the current time, so return false.
-        assertFalse(in_five(db.reminder))
+        self.assertFalse(in_five(db.reminder))
         # sets t to a value that is within five seconds of the current time.
         self.payload.ts = time.time() + 5
         # this enters a time within five minutes of the current time into database.
         wait_message(self.payload.ts, self.payload.channel,
                      "reminder for meetup")
         # goes into database, retrieves time value stored at "reminder", and sees if it is successful.
-        assertEqual(db.reminder[self.payload.ts], {
+        self.assertEqual(db.reminder[self.payload.ts], {
                     self.payload.channel: "reminder for meetup"})
         # goes into database, retrieves time value stored at "reminder", and sees if it is successful.
-        assertEqual(db.reminder[self.payload.ts], {
+        self.assertEqual(db.reminder[self.payload.ts], {
                     self.payload.channel: "reminder for meetup"})
         # checks if there are any scheduled reminder messages in five minutes, returns true
         # because t is within five minutes of current time.
-        assertTrue(in_five(db.reminder))
+        self.assertTrue(in_five(db.reminder))
 
 
 if __name__ == '__main__':
     unittest.main()
-"test.py" 71L, 3315C                                                                                     1, 1           T
+# "test.py" 71L, 3315C                                                                                     1, 1           T
