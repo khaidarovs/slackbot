@@ -1,7 +1,10 @@
+from multiprocessing.connection import wait
 from dotenv import load_dotenv
+import requests
 import json
 import os
 import time
+import asyncio
 from slack import WebClient
 from flask import Flask
 from slackeventsapi import SlackEventAdapter
@@ -91,6 +94,8 @@ def meetup(self):
     wait_message(ts, self.payload.channel, "reminder for meetup")
     return ts + time.time()
 
+# lacks sendMessage implimentation
+
 
 def wait_message(ts, channel, remindMessage):
     if not db.reminder[ts]:
@@ -98,12 +103,27 @@ def wait_message(ts, channel, remindMessage):
     db.reminder[ts].update({channel: remindMessage})
     return
 
+# checks if a reminder is in the next five minutes
+# lacks sendMessage implimentation
+
 
 def in_five(ts):
+    found = False
     for time in db.reminder:
         if (time - time.time() < 300):
-            return True
-    return False
+            found = True
+            i = 0
+            for channel in time:
+                delayedMessage(channel.channel, channel, time-time.time())
+                i += 1
+    return found
+
+async def delayedMessage(message, location, delay):
+    await asyncio.sleep(delay)
+    sendMessage(message, location)
+
+def sendMessage(message, location):
+    web_client.chat_postMessage(channel=location, text=message)
 
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
