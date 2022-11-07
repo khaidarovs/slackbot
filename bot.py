@@ -104,18 +104,15 @@ def wait_message(ts, channel, remindMessage):
     return
 
 # checks if a reminder is in the next five minutes
-# lacks sendMessage implimentation
-
-
 def in_five(ts):
     found = False
-    for time in db.reminder:
-        if (time - time.time() < 300):
+    events = list(db.reminder.keys())
+    for event in events:
+        if (event - time.time() < 300):
             found = True
-            i = 0
-            for channel in time:
-                delayedMessage(channel.channel, channel, time-time.time())
-                i += 1
+            locations = list(db.reminder.event.keys())
+            for location in locations:
+                delayedMessage(db.reminder.event.location, location, event - time.time())
     return found
 
 async def delayedMessage(message, location, delay):
