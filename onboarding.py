@@ -1,5 +1,6 @@
 import json
 import os
+import logging as logger
 from dotenv import load_dotenv
 from slack import WebClient
 from flask import Flask
@@ -52,6 +53,19 @@ def welcome_new_user(payload):
         return send_im_message(event.get('user'), welcome_text)
     return True
 
+def normalize_channel_name(channel_name):
+    '''
+        Converts the name of a class channel (in the format XXXX-#####) to the 
+        proper slack format (includes only lowercase letters, numbers, 
+        and a hyphen).
+
+        Input: channel_name (str): the name of the channel to be normalized
+
+        Output: (str) the normalized version of the channel_name.
+    '''
+    subject = channel_name[0:4]
+    return subject.lower() + channel_name[4:]
+
 #returns channel name with a search by id
 def get_channel_name(id):
     #TODO next iteration
@@ -67,13 +81,45 @@ def send_im_message(userid, text):
     pass
 
 def check_channel(channel):
+    '''
+        Check if a given class currently exists in the workspace.
+        
+        Input: channel (str) The name of the class to check for
+        Output: (bool) Whether or not the channel exists
+    '''
+    channels = fetch_conversations()
+
     #access second element in channels (which is list of [id, channel_names]s)
     channel_names = [el[1] for el in channels]
     return channel in channel_names
 
-def handle_onboarding():
-    #TODO 
-    pass
+def handle_onboarding(class_name, user_id):
+    '''
+        Adds a user to the channel for the given class, creating the channel if
+        it doesn't exist.
+
+        Input: 
+            class_name (str): class to add user to
+            user_id (str): id of user to add to class
+
+        Output (dict): A dictionary of the channel information on success, or a
+                       dictionary with error information on failure
+    '''
+    is_channel = check_channel(class_name)
+    name_normalized = normalize_channel_name(class_name)
+    if not is_channel:
+        new_channel = web_client.conversations_create(name_normalized, 
+                                                      is_private=True)
+        channel_id = new_channel.get('id')
+    else:
+        channels = fetch_conversations()
+        for id, name in channels:
+            if name == name_normalized:
+                channel_id = id
+                break
+
+    rv = web_client.conversations_invite(channel_id, user_id)
+    return rv
 
 # web_client.chat_postMessage(channel='#general', text='Hello World!')
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.

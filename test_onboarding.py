@@ -2,7 +2,6 @@ import unittest
 from onboarding import *
 
 class TestOnboarding(unittest.TestCase):
-    # === gonna have to manually create the payload to feed to the bot
     def setUp(self):
         self.channel_join_payload = {
             "type": "member_joined_channel",
@@ -55,7 +54,6 @@ class TestOnboarding(unittest.TestCase):
         new_class = 'CMSC-22001'
         existing_class = 'CMSC-15400'
         
-        
         test_user_id = 'ABCD1234'
         
         new_created_channel = {
@@ -93,9 +91,12 @@ class TestOnboarding(unittest.TestCase):
         new_channel = "CMSC-15400"
         existing_channel = "CMSC-22001"
         lwr_existing_channel = "cmsc-22001"
+        mixed_existing_channel = "cMsC-22001"
         
         #failed because correct scope is needed; find another way to ensure this is a real channel
-        channel_obj = web_client.conversations_create(name=existing_channel, is_private=True)
+        #channel_obj = web_client.conversations_create(name=existing_channel, is_private=True)
+        ''' Todo: call the handle onboarding function (or whatever helper creates
+            a new channel), then check if channel exists.'''
 
         self.assertFalse(check_channel(new_channel))
         self.assertTrue(check_channel(existing_channel))
