@@ -51,40 +51,39 @@ class TestOnboarding(unittest.TestCase):
 
 
     def test_handle_onboarding(self):
-        new_class = 'CMSC-22001'
-        existing_class = 'CMSC-15400'
+        new_class = 'cmsc-76001'
+        existing_class = 'cmsc-15400'
         
-        test_user_id = 'ABCD1234'
-        
-        new_created_channel = {
-            "type": "channel_created",
-            "channel": {
-                "id": "C024BE91L",
-                "name": "CMSC-22001",
-                "created": 1360782804,
-                "creator": "U024BE7LH"
-            }
-        }
-
-        existing_created_channel = {
-            "type": "channel_created",
-            "channel": {
-                "id": "C024BE91L",
-                "name": "CMSC-15400",
-                "created": 1360782804,
-                "creator": "U024BE7LH"
-            }
-        }
+        #Find a valid user in the workspace to test
+        users = web_client.users_list()
+        test_user_id = users.get('members')[2].get('id')
 
         # Checks that a new class was created and student added
-        self.assertTrue(handle_onboarding(new_class))
-        self.assertTrue(new_created_channel in web_client.conversations_list)
-        self.assertTrue(test_user_id in web_client.conversations_members)
+        rv_new = handle_onboarding(new_class, test_user_id)
+        channel_id = rv_new.get('channel').get('id')
+        
+        self.assertTrue(rv_new.get('ok'))
+        self.assertTrue(check_channel(new_class))
+
+        convo_members = web_client.conversations_members(channel=channel_id)
+        self.assertTrue(test_user_id in convo_members)
+        
+        # Cleanup tests for next run
+        ### web_client.conversations_kick(channel=channel_id, user=test_user_id)
+
 
         # Checks that student was added to an existing class
-        self.assertTrue(handle_onboarding(existing_class))
-        self.assertTrue(existing_created_channel in web_client.conversations_list)
-        self.assertTrue(test_user_id in web_client.conversations_members)
+        rv_existing = handle_onboarding(new_class, test_user_id)
+        channel_id = rv_existing.get('channel').get('id')
+        
+        self.assertTrue(rv_existing.get('ok'))
+        self.assertTrue(check_channel(existing_class))
+        
+        convo_members = web_client.conversations_members(channel=channel_id)
+        self.assertTrue(test_user_id in convo_members)
+
+        # Cleanup tests for next run
+        ### web_client.conversations_kick(channel=channel_id, user=test_user_id)
         
         
     def test_check_channel(self):
@@ -92,15 +91,11 @@ class TestOnboarding(unittest.TestCase):
         existing_channel = "CMSC-22001"
         lwr_existing_channel = "cmsc-22001"
         mixed_existing_channel = "cMsC-22001"
-        
-        #failed because correct scope is needed; find another way to ensure this is a real channel
-        #channel_obj = web_client.conversations_create(name=existing_channel, is_private=True)
-        ''' Todo: call the handle onboarding function (or whatever helper creates
-            a new channel), then check if channel exists.'''
 
         self.assertFalse(check_channel(new_channel))
         self.assertTrue(check_channel(existing_channel))
         self.assertTrue(check_channel(lwr_existing_channel))
+        self.assertTrue(check_channel(mixed_existing_channel))
 
 if __name__ == '__main__':
     unittest.main()

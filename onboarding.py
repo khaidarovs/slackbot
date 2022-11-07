@@ -20,17 +20,21 @@ web_client = WebClient(token=os.environ["BOT_TOKEN"])
 # database to store any conversations information
 conversations_store = {}
 #list of lists of format [[id, channel_name], [id, channel_name]]
-channels = []
 def fetch_conversations():
+    channels = []
     try:
         # Call the conversations.list method using the WebClient
-        result = web_client.conversations_list()
-        save_conversations(result["channels"])
+        result = web_client.conversations_list(types="public_channel, private_channel", 
+                                               limit=9999)
+        channels = save_conversations(result["channels"])
     except SlackApiError as e:
         logger.error("Error fetching conversations: {}".format(e))
+    else:
+        return channels
 
 # Put conversations into the JavaScript object
 def save_conversations(conversations):
+    channels = []
     conversation_id = ""
     for conversation in conversations:
         # Key conversation info on its unique ID
@@ -39,19 +43,25 @@ def save_conversations(conversations):
         # Store the entire conversation object
         # (you may not need all of the info)
         conversations_store[conversation_id] = conversation
-
-fetch_conversations()
-
+    return channels
 
 #member joined channel event listener
 @slack_event_adapter.on('member_joined_channel')
 def welcome_new_user(payload):
+    '''
+        Instructs the user on how to use StudyGroup when they first join 
+        the workspace.
+
+        Input: payload (type?): Payload from the member_joined_channel event
+        
+        Output: (type?) The output of send_im_message, or False if the channel joined was not the general channel
+    '''
     event = payload.get('event', {})
     channel_name = get_channel_name(event.get('channel'))
     welcome_text = "Welcome to StudyRoom! To join a class, message me with the command `/join_class SUBJ-#####` (for example, `/join_class CMSC-22001), and I'll add you the study group."
     if(channel_name == 'general'):
         return send_im_message(event.get('user'), welcome_text)
-    return True
+    return False
 
 def normalize_channel_name(channel_name):
     '''
@@ -75,10 +85,28 @@ def get_channel_name(id):
 def get_im_id(user):
     #TODO next iteration
     pass
-#sends a message to the private channel between user and app
+
 def send_im_message(userid, text):
-    #TODO next iteration
-    pass
+    '''
+        Sends a direct message to the user with the given user id.
+
+        Input:
+            userid (str): The user to receive the message
+            text(str): The message to send to the user
+
+        Output (type?): Success response containing channel and message text, or 
+                        SlackApiError on failure
+    '''
+
+    channel_id = ""
+    try:
+        channel_id = web_client.conversations_open(users=userid)
+    except SlackApiError as e:
+        logger.error("Error fetching conversations: {}".format(e))
+        return e
+    else:
+        rv = web_client.chat_postMessage(channel=channel_id, text=text)
+        return rv
 
 def check_channel(channel):
     '''
@@ -88,10 +116,11 @@ def check_channel(channel):
         Output: (bool) Whether or not the channel exists
     '''
     channels = fetch_conversations()
+    normalized_channel = normalize_channel_name(channel)
 
     #access second element in channels (which is list of [id, channel_names]s)
     channel_names = [el[1] for el in channels]
-    return channel in channel_names
+    return normalized_channel in channel_names
 
 def handle_onboarding(class_name, user_id):
     '''
@@ -102,15 +131,20 @@ def handle_onboarding(class_name, user_id):
             class_name (str): class to add user to
             user_id (str): id of user to add to class
 
-        Output (dict): A dictionary of the channel information on success, or a
-                       dictionary with error information on failure
+        Output: A dictionary of the channel information on success, or 
+                error information on failure (SlackApiError)
     '''
     is_channel = check_channel(class_name)
     name_normalized = normalize_channel_name(class_name)
     if not is_channel:
-        new_channel = web_client.conversations_create(name_normalized, 
-                                                      is_private=True)
-        channel_id = new_channel.get('id')
+        try:
+            new_channel = web_client.conversations_create(name=name_normalized, 
+                                                          is_private=True)
+        except SlackApiError as e:
+            logger.error("Error creating channel: {}".format(name_normalized, e))
+            return e
+        else:
+            channel_id = new_channel.get('channel').get('id')
     else:
         channels = fetch_conversations()
         for id, name in channels:
@@ -118,7 +152,11 @@ def handle_onboarding(class_name, user_id):
                 channel_id = id
                 break
 
-    rv = web_client.conversations_invite(channel_id, user_id)
+    if not channel_id:
+        logger.error("Error finding channel_id: id not found")
+        return "id for channel " + name_normalized + " not found"
+
+    rv = web_client.conversations_invite(channel=channel_id, users=user_id)
     return rv
 
 # web_client.chat_postMessage(channel='#general', text='Hello World!')
