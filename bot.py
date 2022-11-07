@@ -107,18 +107,26 @@ def wait_message(ts, channel, remindMessage):
 def in_five(ts):
     found = False
     events = list(db.reminder.keys())
+    #reads each time stamp
     for event in events:
-        if (event - time.time() < 300):
+        #is within five minutes
+        FIVE_MINUTES = 300
+        if (event - time.time() < FIVE_MINUTES):
             found = True
-            locations = list(db.reminder.event.keys())
+            #reads each channel of that time stamp
+            locations = list(db.reminder[event].keys())
+            #iterates through channels for each time stamp
             for location in locations:
-                delayedMessage(db.reminder.event.location, location, event - time.time())
+                delayedMessage(db.reminder[event][location], location, event - time.time())
+            del db.reminder[event]
     return found
 
+#sends a message after a delay
 async def delayedMessage(message, location, delay):
     await asyncio.sleep(delay)
     sendMessage(message, location)
 
+#sends a message
 def sendMessage(message, location):
     web_client.chat_postMessage(channel=location, text=message)
 
