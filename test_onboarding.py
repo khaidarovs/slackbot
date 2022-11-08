@@ -3,10 +3,19 @@ from onboarding import *
 
 class TestOnboarding(unittest.TestCase):
     def setUp(self):
-        self.channel_join_payload = {
+        self.general_join_payload = {
             "type": "member_joined_channel",
             "user": "W06GH7XHN",
-            "channel": "C0698JE0H",
+            "channel": "C049FJF4VN2",
+            "channel_type": "C",
+            "team": "T061EG9R6",
+            "inviter": "U123456789"
+        }
+
+        self.non_general_join_payload = {
+            "type": "member_joined_channel",
+            "user": "W06GH7XHN",
+            "channel": "C04A0RNAV09",
             "channel_type": "C",
             "team": "T061EG9R6",
             "inviter": "U123456789"
@@ -14,40 +23,8 @@ class TestOnboarding(unittest.TestCase):
     
     def test_welcome_new_user(self):
         # Function should return True when message is successfully sent
-        self.assertTrue(welcome_new_user(self.channel_join_payload))
-
-        #Check that the sent message is the same as the received message
-        #Triggered when Slackbot gets a direct message  
-        msg_event_received = {
-            "token": "one-long-verification-token",
-            "team_id": "T061EG9R6",
-            "api_app_id": "A0PNCHHK2",
-            "event": {
-                "type": "message",
-                "channel": "D024BE91L",
-                "user": "U2147483697",
-                "text": "Welcome to StudyRoom! To join a class, message me with the command `/join_class SUBJ-#####` (for example, `/join_class CMSC-22001), and I'll add you the study group.",
-                "ts": "1355517523.000005",
-                "event_ts": "1355517523.000005",
-                "channel_type": "im"
-            },
-            "type": "event_callback",
-            "authed_teams": [
-                "T061EG9R6"
-            ],
-            "event_id": "Ev0PV52K21",
-            "event_time": 1355517523
-        }
-
-        #The message received by the user is accessed through the above JSON
-        msg_received =  msg_event_received['event']['text']
-
-        #Check that the message sent is equal to the message received
-            #self.assertEqual(msg_sent, msg_received)  #<=== commented out because msg_sent was not defined, not sure what that's supposed to be
-
-        #Check that the message sent and events are equal
-        self.assertEqual(welcome_new_user(self.channel_join_payload), 
-                         msg_event_received)
+        self.assertFalse(welcome_new_user(self.non_general_join_payload))
+        self.assertTrue(welcome_new_user(self.general_join_payload).get('ok')) #???
 
 
     def test_handle_onboarding(self):
