@@ -81,9 +81,12 @@ def get_channel_name(id):
     #TODO next iteration
     pass
 
-#returns private message channel id of the App
-def get_im_id(user):
-    #TODO next iteration
+#returns channel name with a search by id
+def get_channel_id(name_normalized):
+    channels = fetch_conversations()
+    for id, name in channels:
+        if name == name_normalized:
+            return id
     pass
 
 def send_im_message(userid, text):
@@ -146,11 +149,13 @@ def handle_onboarding(class_name, user_id):
         else:
             channel_id = new_channel.get('channel').get('id')
     else:
-        channels = fetch_conversations()
-        for id, name in channels:
-            if name == name_normalized:
-                channel_id = id
-                break
+        #made this into a helper function bc i needed to use it in tester too
+        channel_id = get_channel_id(name_normalized)
+        # channels = fetch_conversations()
+        # for id, name in channels:
+        #     if name == name_normalized:
+        #         channel_id = id
+        #         break
 
     if not channel_id:
         logger.error("Error finding channel_id: id not found")
