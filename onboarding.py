@@ -19,8 +19,16 @@ web_client = WebClient(token=os.environ["BOT_TOKEN"])
 
 # database to store any conversations information
 conversations_store = {}
-#list of lists of format [[id, channel_name], [id, channel_name]]
+
 def fetch_conversations():
+    '''
+        Finds all conversations in the workspace (public and private).
+
+        Input: None
+
+        Output: (list of list of str) A list of pairs of channel ids and their 
+                associated channel names
+    '''
     channels = []
     try:
         # Call the conversations.list method using the WebClient
@@ -32,8 +40,18 @@ def fetch_conversations():
     else:
         return channels
 
+
 # Put conversations into the JavaScript object
 def save_conversations(conversations):
+    '''
+        Saves all the conversations in the workspace into the conversations_store.
+
+        Input: conversations (list of objects): A list of the active conversations 
+               in the workspace, in the form of conversation objects
+
+        Output: (list of list of str) A list of pairs of channel ids and their 
+                associated channel names
+    '''
     channels = []
     conversation_id = ""
     for conversation in conversations:
@@ -45,6 +63,7 @@ def save_conversations(conversations):
         conversations_store[conversation_id] = conversation
     return channels
 
+
 #member joined channel event listener
 @slack_event_adapter.on('member_joined_channel')
 def welcome_new_user(payload):
@@ -52,16 +71,19 @@ def welcome_new_user(payload):
         Instructs the user on how to use StudyGroup when they first join 
         the workspace.
 
-        Input: payload (type?): Payload from the member_joined_channel event
+        Input: payload (object): Payload from the member_joined_channel event
         
-        Output: (type?) The output of send_im_message, or False if the channel joined was not the general channel
+        Output: (object or boolean) The output of send_im_message, or False if the channel 
+                joined was not the general channel
     '''
     event = payload.get('event', {})
     channel_name = get_channel_name(event.get('channel'))
     welcome_text = "Welcome to StudyRoom! To join a class, message me with the command `/join_class SUBJ-#####` (for example, `/join_class CMSC-22001), and I'll add you the study group."
+    
     if(channel_name == 'general'):
         return send_im_message(event.get('user'), welcome_text)
     return False
+
 
 def normalize_channel_name(channel_name):
     '''
@@ -71,23 +93,40 @@ def normalize_channel_name(channel_name):
 
         Input: channel_name (str): the name of the channel to be normalized
 
-        Output: (str) the normalized version of the channel_name.
+        Output: (str) the normalized version of the channel_name
     '''
     subject = channel_name[0:4]
     return subject.lower() + channel_name[4:]
 
-#returns channel name with a search by id
-def get_channel_name(id):
-    #TODO next iteration
-    pass
 
-#returns channel name with a search by id
+def get_channel_name(channel_id):
+    '''
+        Returns the name of the channel with the given channel ID, or none if the
+        channel doesn't exist.
+
+        Input: channel_id (str): ID of the channel to be searched
+        Output: (str) The name of the channel with the given ID, or None if channel
+                doesn't exist
+    '''
+    channels = fetch_conversations()
+    for id, name in channels:
+        if id == channel_id:
+            return name
+
+
 def get_channel_id(name_normalized):
+    '''
+        Returns the ID of the channel with the given name.
+
+        Input: name_normalized(str): the channel to be searched for
+
+        Output: (str) the ID of the found channel
+    '''
     channels = fetch_conversations()
     for id, name in channels:
         if name == name_normalized:
             return id
-    pass
+
 
 def send_im_message(userid, text):
     '''
@@ -97,19 +136,19 @@ def send_im_message(userid, text):
             userid (str): The user to receive the message
             text(str): The message to send to the user
 
-        Output (type?): Success response containing channel and message text, or 
-                        SlackApiError on failure
+        Output (object): Success response containing channel and message text, or 
+                         SlackApiError on failure
     '''
 
     channel_id = ""
     try:
-        channel_id = web_client.conversations_open(users=userid)
+        rv = web_client.chat_postMessage(channel=userid, text=text)
     except SlackApiError as e:
         logger.error("Error fetching conversations: {}".format(e))
         return e
-    else:
-        rv = web_client.chat_postMessage(channel=channel_id, text=text)
+    else:     
         return rv
+
 
 def check_channel(channel):
     '''
@@ -125,6 +164,7 @@ def check_channel(channel):
     channel_names = [el[1] for el in channels]
     return normalized_channel in channel_names
 
+
 def handle_onboarding(class_name, user_id):
     '''
         Adds a user to the channel for the given class, creating the channel if
@@ -134,7 +174,7 @@ def handle_onboarding(class_name, user_id):
             class_name (str): class to add user to
             user_id (str): id of user to add to class
 
-        Output: A dictionary of the channel information on success, or 
+        Output: The channel information on success, or 
                 error information on failure (SlackApiError)
     '''
     is_channel = check_channel(class_name)
@@ -149,13 +189,7 @@ def handle_onboarding(class_name, user_id):
         else:
             channel_id = new_channel.get('channel').get('id')
     else:
-        #made this into a helper function bc i needed to use it in tester too
         channel_id = get_channel_id(name_normalized)
-        # channels = fetch_conversations()
-        # for id, name in channels:
-        #     if name == name_normalized:
-        #         channel_id = id
-        #         break
 
     if not channel_id:
         logger.error("Error finding channel_id: id not found")
