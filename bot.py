@@ -79,7 +79,6 @@ def handle_workspace_channels(payload):
         #delete the channel
         pass
 
-
 # handle_slash_command is the default function called when a slash command is 
 # sent by a user in the workspace. Payload sent by Slack is parsed for 
 # determining whether it's defective or not, and if not then the relevant 
@@ -123,7 +122,7 @@ def handle_set_activity_warning_threshold_invocation(payload):
 
 # Removed handle_set_activity_warning_content_invocation(payload) since we 
 # determined the string value in /set_activity_warning_content{string value} 
-# is not important.
+# is not important to handle.
 
 # Determines if the parameter to /join_class{class number} is valid. 
 def handle_join_class_invocation(payload):
