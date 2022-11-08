@@ -14,6 +14,7 @@ We also decided to let the bot automatically handle the creation of classes, rat
 
 ## Onboarding Test Changes (3.B)
 We realized that the tests utilize events operating in the workspace we created; thus, we had to revamp them a bit to get them to work properly.
+
 `test_welcome_new_user()`:
 - We realized that the previous tests for `welcome_new_user()` wouldn't have worked, so we created a helper function to simulate different payloads, and used this to simulate a user joining a non-general and general channel.
 
