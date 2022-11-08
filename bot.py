@@ -1,10 +1,9 @@
 from multiprocessing.connection import wait
 from dotenv import load_dotenv
-import requests
-import json
 import os
 import time
 import asyncio
+import re
 from slack import WebClient
 from flask import Flask
 from slackeventsapi import SlackEventAdapter
@@ -31,12 +30,10 @@ web_client = WebClient(token=os.environ['BOT_TOKEN'])
 # Global Storage
 # This is an inefficient way to store data, but it is a temporary solution until we are able to
 # implement fireBase into our project.
-db = {}
-db.reminder = {}
+global db 
+db = {"reminder": {}}
 
 # Functions we'd implement would be here.
-
-
 def parsing(self):
     # split the function, so that all the instances of s,m,h,d and any spaces are separated
     # but still kept
@@ -45,7 +42,6 @@ def parsing(self):
     # the resulting array
     result = [x for x in splits if x != '' and x != ' ']
     return result
-
 
 def calculation(self):
     # initialize accumulator
@@ -88,48 +84,47 @@ def calculation(self):
 
 
 @bot_app.route('/meetup', methods=['POST'])
-def meetup(self):
-    step1 = parsing(self.payload.text)
+def meetup(text):
+    step1 = parsing(text)
     ts = calculation(step1)
-    wait_message(ts, self.payload.channel, "reminder for meetup")
-    return ts + time.time()
+    wait_message(ts + time.time(), desiredchannel, "reminder for meetup")
+    return ts
 
-# lacks sendMessage implimentation
+# Sends a message later
 
 
 def wait_message(ts, channel, remindMessage):
-    if not db.reminder[ts]:
-        db.reminder[ts] = {}
-    db.reminder[ts].update({channel: remindMessage})
+    db["reminder"][ts] = {}
+    db["reminder"][ts].update({channel: remindMessage})
     return
 
 # checks if a reminder is in the next five minutes
 def in_five(ts):
     found = False
-    events = list(db.reminder.keys())
-    #reads each time stamp
+    events = list(db["reminder"].keys())
+    # reads each time stamp
     for event in events:
-        #is within five minutes
+        # is within five minutes
         FIVE_MINUTES = 300
         if (event - time.time() < FIVE_MINUTES):
             found = True
-            #reads each channel of that time stamp
-            locations = list(db.reminder[event].keys())
-            #iterates through channels for each time stamp
+            # reads each channel of that time stamp
+            locations = list(db["reminder"][event].keys())
+            # iterates through channels for each time stamp
             for location in locations:
-                delayedMessage(db.reminder[event][location], location, event - time.time())
-            del db.reminder[event]
+                delayedMessage(db["reminder"][event][location],
+                               location, event - time.time())
+            del db["reminder"][event]
     return found
 
-#sends a message after a delay
+# sends a message after a delay
 async def delayedMessage(message, location, delay):
     await asyncio.sleep(delay)
     sendMessage(message, location)
 
-#sends a message
+# sends a message
 def sendMessage(message, location):
     web_client.chat_postMessage(channel=location, text=message)
-
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
