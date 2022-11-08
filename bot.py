@@ -83,8 +83,8 @@ def calculation(self):
     return res
 
 @bot_app.route('/meetup', methods=['POST'])
-def meetup(text):
-    step1 = parsing(text)
+def meetup(*text):
+    step1 = parsing(text[0])
     ts = calculation(step1)
     #Waiting on cross-implimentation between core and meetup
     #wait_message(ts + time.time(), desiredchannel, "reminder for meetup")
