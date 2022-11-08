@@ -21,49 +21,68 @@ slack_event_adapter = SlackEventAdapter("SIGNING_SECRET", "/slack/events", bot_a
 
 # You can find the bot token in the "OAuth & Permissions" section of the Slack 
 # workspace developer console.
-# os.environ['BOT_TOKEN']
+# slack_token = os.environ['BOT_TOKEN']
 web_client = WebClient(token="BOT_TOKEN")
 
 # Functions we'd implement would be here.
+# auth_info = web_client.api_call("auth.test") #https://api.slack.com/methods/auth.test/test -> web_client.api_call("auth.test")['user_id']
+bot_id = "1" #auth_info["bot_id"]
+team_id = "2" #auth_info["team_id"]
+
 """
 Checks if the payload is valid (i.e. has all the fields that we need for processing).
+The fields that we need are:
+    - token
+    - team (workspace) ID
+    - channel ID
+    - user ID
 """
-def check_valid_payload(payload):
+def check_valid_payload(payload, team_id, token):
     print("check_valid_payload is being tested\n")
     valid = True
+    if "token" in payload:
+        if (payload["token"] != token) or (payload["team_id"] != team_id) or (payload["event"]["type"] == "") or (payload["event"]["channel"] == "") or (payload["event"]["user"] == ""):
+            valid = False
     return valid
 
 """
 Parses the payload and returns a shortened dictionary object with the relevant information.
-In case the subtype is irrelevant OR the user ID is the same as the bot ID, 
+Fields we need:
+    - token
+    - user ID
+    - channel ID
+In case the subtype is irrelevant OR the user ID is the same as the bot ID (handled by bot_message subtype) 
 meaning the event was triggered by a bot replying in the chat, return an empty dictionary.
 """
-def parse_payload(payload, bot_id):
+def parse_payload(payload):
     print("parse_payload is being tested\n")
     info = {}
-    if (payload.get("user") == bot_id):
+    if ("subtype" in payload["event"]): #(payload["event"].has_key("subtype")):
         return info
-    else:
-        info = payload
+    else: 
+        info["token"] = payload["token"]
+        info["user"] = payload["event"]["user"]
+        info["channel"] = payload["event"]["channel"]
+        info["text"] = payload["event"]["text"]
     return info
 
 def check_id(payload, bot_id):
     print("check_id is being tested\n")
     rv = True
-    if (payload.get("channel").get("creator") == bot_id):
+    if (payload["event"]["channel"]["creator"] == bot_id):
         rv = False
     return rv
 
 @slack_event_adapter.on('message')
 def handle_message_event(payload):
-    #TODO
     #Check if the payload is valid
     #If it is, parse the payload and return a useful information dictionary
-    if (check_valid_payload(payload)):
-        bot_id = "1"
-        info_dict = parse_payload(payload, bot_id)
+    payload = request.form.to_dict()
+    slack_token = "123"
+    if (check_valid_payload(payload, team_id, slack_token)):
+        info_dict = parse_payload(payload)
         #Call the relevant function and pass info_dict as parameter    
-    return Response(status=501)
+    return Response(status=200)
 
 @slack_event_adapter.on('channel_created')
 def handle_workspace_channels(payload):
@@ -71,13 +90,21 @@ def handle_workspace_channels(payload):
     #to delete the channel the function should make an API call
     #look at payload["channel"]["creator"]
     #to get the bot id - do an api call
-    bot_id = "1" #https://api.slack.com/methods/auth.test/test -> web_client.api_call("auth.test")['user_id']
+    payload = request.form.to_dict()
+    # bot_id = web_client.api_call("auth.test")['bot_id']
     if (check_id(payload, bot_id)):
         #do nothing
         pass
     else:
-        #delete the channel
-        pass
+        #archive the channel
+        channel_id = payload["event"]["channel"]["id"]
+        join_rv = web_client.api_call("conversation.join", params=channel_id) #not sure if that's how we specify the channel
+        if (not join_rv["ok"]):
+            print(join_rv["error"])
+        archive_rv = web_client.api_call("conversations.archive", params=channel_id) #need to add channels:manage scope
+        if (not archive_rv["ok"]):
+            print(join_rv["error"])
+    return Response(status=200)
 
 
 # handle_slash_command is the default function called when a slash command is 
@@ -87,7 +114,9 @@ def handle_workspace_channels(payload):
 @bot_app.route('/slash-command', methods=['POST'])
 def handle_slash_command():
     payload = request.form.to_dict()
-    if check_valid_payload(payload) == False:
+    team_id = "1"
+    token = "2"
+    if check_valid_payload(payload, team_id, token) == False:
         return Response(status=400)
     resp = Response(status=200)
     # payload['command'] will always be valid slash command due to Slack 
@@ -204,7 +233,7 @@ def handle_meetup_invocation(payload):
         location = params[1]
     # meetup function call HERE
     return Response(status=200)
-    
+
 # Determines if the parameter to /disable_activity_warnings{string downtime} is 
 # valid. 
 def handle_disable_activity_warnings_invocation(payload):

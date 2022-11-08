@@ -225,50 +225,168 @@ or if everything is fine and it returns a valid dictionary with the useful infor
 class TestCheckingPayload(unittest.TestCase):
     def setUp(self):
         self.payload = {
+                        "token": "z26uFbvR1xHJEdHE1OQiO6t8",
+                        "team_id": "T061EG9RZ",
+                        "api_app_id": "A0FFV41KK",
+                        "event": {
                             "type": "message",
                             "channel": "C2147483705",
                             "user": "U2147483697",
                             "text": "Hello world",
                             "ts": "1355517523.000005"
+                        },
+                        "type": "event_callback",
+                        "authed_users": [
+                            "U061F7AUR"
+                        ],
+                        "authorizations": [
+                            {
+                                "enterprise_id": "E12345",
+                                "team_id": "T12345",
+                                "user_id": "U12345",
+                                "is_bot": False
+                            }
+                        ],
+                        "event_id": "Ev9UQ52YNA",
+                        "event_context": "EC12345",
+                        "event_time": 1234567890
+                    }
+        self.bad_payload = { #wrong token number and wrong team_id
+                        "token": "z26uFbvR1xHJEdHE1OQiO6t7",
+                        "team_id": "T061EG9RG",
+                        "api_app_id": "A0FFV41KK",
+                        "event": {
+                            "type": "message",
+                            "channel": "C2147483705",
+                            "user": "U2147483697",
+                            "text": "Hello world",
+                            "ts": "1355517523.000005"
+                        },
+                        "type": "event_callback",
+                        "authed_users": [
+                            "U061F7AUR"
+                        ],
+                        "authorizations": [
+                            {
+                                "enterprise_id": "E12345",
+                                "team_id": "T12345",
+                                "user_id": "U12345",
+                                "is_bot": False
+                            }
+                        ],
+                        "event_id": "Ev9UQ52YNA",
+                        "event_context": "EC12345",
+                        "event_time": 1234567890
+                    }
+        self.bad_payload2 = { #event type is missing
+                        "token": "z26uFbvR1xHJEdHE1OQiO6t8",
+                        "team_id": "T061EG9RZ",
+                        "api_app_id": "A0FFV41KK",
+                        "event": {
+                            "type": "",
+                            "channel": "C2147483705",
+                            "user": "U2147483697",
+                            "text": "Hello world",
+                            "ts": "1355517523.000005"
+                        },
+                        "type": "event_callback",
+                        "authed_users": [
+                            "U061F7AUR"
+                        ],
+                        "authorizations": [
+                            {
+                                "enterprise_id": "E12345",
+                                "team_id": "T12345",
+                                "user_id": "U12345",
+                                "is_bot": False
+                            }
+                        ],
+                        "event_id": "Ev9UQ52YNA",
+                        "event_context": "EC12345",
+                        "event_time": 1234567890
+                    }
+        self.bad_payload3 = { #event channel and user missing
+                    "token": "z26uFbvR1xHJEdHE1OQiO6t8",
+                    "team_id": "T061EG9RZ",
+                    "api_app_id": "A0FFV41KK",
+                    "event": {
+                        "type": "message",
+                        "channel": "",
+                        "user": "",
+                        "text": "Hello world",
+                        "ts": "1355517523.000005"
+                    },
+                    "type": "event_callback",
+                    "authed_users": [
+                        "U061F7AUR"
+                    ],
+                    "authorizations": [
+                        {
+                            "enterprise_id": "E12345",
+                            "team_id": "T12345",
+                            "user_id": "U12345",
+                            "is_bot": False
                         }
-        self.bad_payload = {
-                                "type": "message",
-                                "channel": "",
-                                "user": "U2147483697",
-                                "text": "Hello world",
-                                "ts": "1355517523.000005"
-                            }
-        self.bad_payload2 = {
-                                "type": "message",
-                                "channel": "C2147483705",
-                                "user": "",
-                                "text": "Hello world",
-                                "ts": "1355517523.000005"
-                            }
+                    ],
+                    "event_id": "Ev9UQ52YNA",
+                    "event_context": "EC12345",
+                    "event_time": 1234567890
+                }
 
     def test_valid_payload(self):
         print("TESTING THE VALID PAYLOAD\n")
-        self.assertTrue(bot.check_valid_payload(self.payload))
-        self.assertFalse(bot.check_valid_payload(self.bad_payload))
-        self.assertFalse(bot.check_valid_payload(self.bad_payload2))
+        team_id = "T061EG9RZ"
+        token = "z26uFbvR1xHJEdHE1OQiO6t8"
+        self.assertTrue(bot.check_valid_payload(self.payload, team_id, token))
+        self.assertFalse(bot.check_valid_payload(self.bad_payload, team_id, token))
+        self.assertFalse(bot.check_valid_payload(self.bad_payload2, team_id, token))
+        self.assertFalse(bot.check_valid_payload(self.bad_payload3, team_id, token))
 
     def test_parsing_payload(self):
         print("TESTING PARSING THE PAYLOAD\n")
-        bot_id1 = "U2147483697"
-        bot_id2 = "U2147483698"
-        expected_output = {
+        payload_subtype = {
+                        "token": "z26uFbvR1xHJEdHE1OQiO6t8",
+                        "team_id": "T061EG9RZ",
+                        "api_app_id": "A0FFV41KK",
+                        "event": {
                             "type": "message",
+                            "subtype": "channel_join",
+                            "text": "<@U023BECGF|bobby> has joined the channel",
+                            "ts": "1403051575.000407",
+                            "user": "U023BECGF"
+                        },
+                        "type": "event_callback",
+                        "authed_users": [
+                            "U061F7AUR"
+                        ],
+                        "authorizations": [
+                            {
+                                "enterprise_id": "E12345",
+                                "team_id": "T12345",
+                                "user_id": "U12345",
+                                "is_bot": False
+                            }
+                        ],
+                        "event_id": "Ev9UQ52YNA",
+                        "event_context": "EC12345",
+                        "event_time": 1234567890
+                    }
+        expected_output = {
+                            "token": "z26uFbvR1xHJEdHE1OQiO6t8",
                             "channel": "C2147483705",
                             "user": "U2147483697",
                             "text": "Hello world",
-                            "ts": "1355517523.000005"
                           }
-        self.assertEqual(bot.parse_payload(self.payload, bot_id1), {})
-        self.assertEqual(bot.parse_payload(self.payload, bot_id2), expected_output)
+        self.assertEqual(bot.parse_payload(payload_subtype), {})
+        self.assertEqual(bot.parse_payload(self.payload), expected_output)
 
 class TestHandlingWorkspace(unittest.TestCase):
     def setUp(self):
         self.payload = {
+                        "token": "z26uFbvR1xHJEdHE1OQiO6t8",
+                        "team_id": "T061EG9RZ",
+                        "api_app_id": "A0FFV41KK",
+                        "event": {
                             "type": "channel_created",
                             "channel": {
                                 "id": "C024BE91L",
@@ -276,7 +394,23 @@ class TestHandlingWorkspace(unittest.TestCase):
                                 "created": 1360782804,
                                 "creator": "U024BE7LH"
                             }
-                        }
+                        },
+                        "type": "event_callback",
+                        "authed_users": [
+                            "U061F7AUR"
+                        ],
+                        "authorizations": [
+                            {
+                                "enterprise_id": "E12345",
+                                "team_id": "T12345",
+                                "user_id": "U12345",
+                                "is_bot": False
+                            }
+                        ],
+                        "event_id": "Ev9UQ52YNA",
+                        "event_context": "EC12345",
+                        "event_time": 1234567890
+                    }
     
     def test_channel_creation(self):
         bot_id1 = "U2147483697"
