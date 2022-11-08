@@ -14,7 +14,7 @@ class TestOnboarding(unittest.TestCase):
     
     def test_welcome_new_user(self):
         # Function should return True when message is successfully sent
-        self.assertTrue(welcome_new_user(self.channel_join_payload))
+        self.assertTrue(welcome_new_user(self.channel_join_payload)) 
 
         #Check that the sent message is the same as the received message
         #Triggered when Slackbot gets a direct message  
@@ -52,36 +52,38 @@ class TestOnboarding(unittest.TestCase):
 
     def test_handle_onboarding(self):
         new_class = 'cmsc-76001'
-        existing_class = 'cmsc-15400'
-        
+        existing_class = 'cmsc-22001'
+
         #Find a valid user in the workspace to test
         users = web_client.users_list()
         test_user_id = users.get('members')[2].get('id')
-
+    
         # Checks that a new class was created and student added
+        #grace--web_client.conversations_kick(channel=get_channel_id(new_class), user=test_user_id)
         rv_new = handle_onboarding(new_class, test_user_id)
-        channel_id = rv_new.get('channel').get('id')
+        channel_id=get_channel_id(new_class)
+        # channel_id = rv_new.get('channel').get('id')
         
         self.assertTrue(rv_new.get('ok'))
         self.assertTrue(check_channel(new_class))
 
-        convo_members = web_client.conversations_members(channel=channel_id)
+        convo_members = web_client.conversations_members(channel=channel_id)['members']
         self.assertTrue(test_user_id in convo_members)
-        
         # Cleanup tests for next run
         ### web_client.conversations_kick(channel=channel_id, user=test_user_id)
 
 
         # Checks that student was added to an existing class
-        rv_existing = handle_onboarding(new_class, test_user_id)
+        #grace--web_client.conversations_kick(channel=get_channel_id(existing_class), user=test_user_id)
+        rv_existing = handle_onboarding(existing_class, test_user_id) #where are we creating existing class? 
+        #also do you mean existing_class here ^  instead of new_class?
         channel_id = rv_existing.get('channel').get('id')
         
         self.assertTrue(rv_existing.get('ok'))
-        self.assertTrue(check_channel(existing_class))
+        self.assertTrue(check_channel(existing_class)) 
         
-        convo_members = web_client.conversations_members(channel=channel_id)
+        convo_members = web_client.conversations_members(channel=channel_id)['members']
         self.assertTrue(test_user_id in convo_members)
-
         # Cleanup tests for next run
         ### web_client.conversations_kick(channel=channel_id, user=test_user_id)
         
