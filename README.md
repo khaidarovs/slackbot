@@ -1,3 +1,17 @@
+# Testing
+
+In order to run the tests:
+
+`python unittest -m discover`
+
+or 
+
+`python3 unittest -m discover`
+
+To run specific tests, run `python -m unittest -k test_name` (e.g. `python -m unittest -k test_welcome_new_user`).
+
+Each feature is described in more detail below
+
 # Handling Events and Slash Commands Feature - Sanzhar and Michael
 
 Compared to the iteration 1 design document, we largely followed the functions outlined in the handling slash command and events feature. We fleshed out the handle_slash_command function more, by having the function branch off into intermediate handling functions, for slash commands that require parameters. The idea is handle_slash_command is the first function called whenever a slash command is invoked. From there is directly handles calling the slash command implementation functions written in the other features, for slash commands that do not have parameters. We also thought that handle_slash_command should also handle defective payload information, since we are relying on Slack to provide us non-malformed data in their POST requests.
@@ -6,9 +20,9 @@ For handle_message_event we created 2 helper functions that check if the payload
 
 These tests are unit tests for the "Command Handling" functionality of the Slack Bot. This includes the following functions:
 ```
-- check_valid_event_payload(payload)
-- check_valid_slash_command_payload(payload)
-- parse_payload(payload, bot_id)
+- check_valid_event_payload(payload, team_id, token)
+- check_valid_slash_command_payload(payload, team_id, token)
+- parse_payload(payload)
 - check_id(payload, bot_id)
 - handle_disable_activity_warnings_invocation(payload)
 - handle_set_activity_warning_threshold_invocation(payload)
@@ -23,11 +37,15 @@ These tests are unit tests for the "Command Handling" functionality of the Slack
 
 Main outlined features were implemented, with the following function changes. 
 - Removed handle_set_activity_warning_content_invocation(payload) function since we decided the slash command text didn't need any special parsing.
-- check_valid_payload became check_valid_event_payload and check_valid_slash_command_payload(payload) since we found the event and slash command JSON payloads slightly differed in structure.
+- check_valid_payload became check_valid_event_payload and check_valid_slash_command_payload(payload) since we found the event and slash command JSON payloads slightly differed in structure. Both functions now require token and team_id as parameters, which are obtained by using auth.test API call. 
+- parse_payload. doesn't require a bot_id as an argument anymore
 Currently a .env file containing the necessary token information for a given workspace is needed in order to live test the bot, along with the creation of a slack workspace as well. 
 
-## Meetup:
-Made by Maya Hall and Jason Huang
+Testing changes:
+- The message and channel_created payloads were extended to contain all the information an actual payload would
+
+
+# Meetup Feature - Maya Hall and Jason Huang:
 - `meetup`, adds a log to the database with the meeting timestamp, location, message. You can enter a time in the form of "XsXmXhXd" where X are different integers. Meetup converts string explaination of a time to seconds.
 - `wait_message`, will stores a combination of a location, a message, and a time as a varaible into a database.
 - `in_five`, checks whether any events in the database occurs within the next five minutes. If so, a message will be sent after a delay. This command will automatically be called every five minutes while the bot is active.
@@ -43,7 +61,7 @@ Made by Maya Hall and Jason Huang
 Run `python unittest -m discover` in the main directory to run all the tests.
 To run specific tests, run `python -m unittest -k test_name` (e.g. `python -m unittest -k test_welcome_new_user`).
 
-## Onboarding (Sabine and Grace)
+# Onboarding (Sabine and Grace)
 Functionality:
 - `welcome_new_user(payload)`: Instructs the user on how to join a class when they first join the workspace. Returns a Slack API generated success message on success, and False otherwise.
 - `handle_onboarding(class_name, user_id)`: Adds the given student to the given class channel, creating the channel if it doesn't already exist. Returns an object with the channel information on success, and a Slack API generated error otherwise.
@@ -61,7 +79,7 @@ We realized that the tests utilize events operating in the workspace we created;
 `test_check_channel()`:
 - We moved the code for creating the existing channel into the setUp() function, since multiple test make use of that class.
 
-## Activity Warning Branch - Matt and Maya G
+# Activity Warning Branch - Matt and Maya G
 ### Running the tests
 First, run the bot to set up connection to the Firebase DB<br />
     `python bot.py`<br />
