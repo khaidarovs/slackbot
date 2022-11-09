@@ -6,11 +6,11 @@ In order to run the tests:
 2. Place the `slackbot-v1-firebase-adminsdk-n7ggn-fcdad3e5ca` inside the slackbot directory before running the tests
 
 
-`python unittest -m discover`
+`python -m unittest discover`
 
 or 
 
-`python3 unittest -m discover`
+`python3 -m unittest discover`
 
 Each feature is described in more detail below
 
