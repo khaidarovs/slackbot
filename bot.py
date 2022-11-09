@@ -1,8 +1,10 @@
 from dotenv import load_dotenv
 import os
-from slack import WebClient
+from slack_sdk import WebClient
 from flask import Flask, Response, request
 from slackeventsapi import SlackEventAdapter
+from slack_bolt import App
+from slack_bolt.adapter.flask import SlackRequestHandler
 
 # Loads the tokens from the ".env" file, which are set up as environment 
 # variables. Done to prevent security risks related to revealing the bot 
@@ -13,21 +15,25 @@ bot_app = Flask(__name__)
 
 # You can find the signing secret token in the "Basic Information" -> 
 # "App Credentials" sections of the Slack workspace developer console.
-# By "/slack/events" is the endpoint that you would attach to the end
-# of the ngrok link when inputting the request URL in the "Event Subscriptions" 
-# -> "Enable Events" section of the Slack workspace developer console.  
-# os.environ['SIGNING_SECRET']
-slack_event_adapter = SlackEventAdapter("SIGNING_SECRET", "/slack/events", bot_app)
-
+SIGNING_SECRET = "SIGNING_SECRET" # os.environ['SIGNING_SECRET']
 # You can find the bot token in the "OAuth & Permissions" section of the Slack 
 # workspace developer console.
-# slack_token = os.environ['BOT_TOKEN']
-web_client = WebClient(token="BOT_TOKEN")
+SLACK_BOT_TOKEN = "SLACK_BOT_TOKEN" # os.environ['SLACK_BOT_TOKEN']
+SLACK_SIGNING_SECRET = "SLACK_SIGNING_SECRET" # os.environ['SLACK_SIGNING_SECRET']
 
-# Functions we'd implement would be here.
-# auth_info = web_client.api_call("auth.test") #https://api.slack.com/methods/auth.test/test -> web_client.api_call("auth.test")['user_id']
-bot_id = "1" #auth_info["bot_id"]
-team_id = "2" #auth_info["team_id"]
+web_client = WebClient(token=SLACK_BOT_TOKEN) # Allows communication with Slack
+
+# Registers the bot under Slack Bolt API, with it's associated handler. 
+# Commented since valid tokens needed for code to run at this stage.  
+# slack_bolt_app = App(token=SLACK_BOT_TOKEN, signing_secret=SLACK_SIGNING_SECRET) 
+# handler = SlackRequestHandler(slack_bolt_app)
+
+# "/slack/events" is the endpoint that you would attach to the end
+# of the ngrok link when inputting the request URL in the "Event Subscriptions" 
+# -> "Enable Events" section of the Slack workspace developer console.  
+slack_event_adapter = SlackEventAdapter(SIGNING_SECRET, "/slack/events", bot_app)
+
+bot_id = "bot_id" # client.auth_test()["bot_id"], constant string value
 
 """
 Checks if the payload is valid (i.e. has all the fields that we need for processing).
@@ -37,13 +43,14 @@ The fields that we need are:
     - channel ID
     - user ID
 """
-def check_valid_payload(payload, team_id, token):
+def check_valid_event_payload(payload, team_id, token):
     print("check_valid_payload is being tested\n")
-    valid = True
-    if "token" in payload:
-        if (payload["token"] != token) or (payload["team_id"] != team_id) or (payload["event"]["type"] == "") or (payload["event"]["channel"] == "") or (payload["event"]["user"] == ""):
-            valid = False
-    return valid
+    if "event" not in payload:
+        return False
+    event = payload["event"]
+    if ("token" not in payload or payload["token"] != token) or ("team_id" not in payload or payload["team_id"] != team_id) or ("type" not in event or event["type"] == "") or ("channel" not in event or event["channel"] == "") or ("user" not in event or event["user"] == ""):
+        return False
+    return True
 
 """
 Parses the payload and returns a shortened dictionary object with the relevant information.
@@ -57,7 +64,7 @@ meaning the event was triggered by a bot replying in the chat, return an empty d
 def parse_payload(payload):
     print("parse_payload is being tested\n")
     info = {}
-    if ("subtype" in payload["event"]): #(payload["event"].has_key("subtype")):
+    if ("subtype" in payload["event"]): 
         return info
     else: 
         info["token"] = payload["token"]
@@ -66,6 +73,8 @@ def parse_payload(payload):
         info["text"] = payload["event"]["text"]
     return info
 
+# check_id determines if the channel created was made by the bot or not, by 
+# comparing ids
 def check_id(payload, bot_id):
     print("check_id is being tested\n")
     rv = True
@@ -73,15 +82,18 @@ def check_id(payload, bot_id):
         rv = False
     return rv
 
+# @bolt_app.event('message')
 @slack_event_adapter.on('message')
 def handle_message_event(payload):
     #Check if the payload is valid
     #If it is, parse the payload and return a useful information dictionary
     payload = request.form.to_dict()
-    slack_token = "123"
-    if (check_valid_payload(payload, team_id, slack_token)):
+    slack_token = "slack_token"
+    team_id = "team_id"
+    if (check_valid_event_payload(payload, team_id, slack_token)):
         info_dict = parse_payload(payload)
-        #Call the relevant function and pass info_dict as parameter    
+        #Call the relevant function and pass info_dict as parameter HERE    
+        #check_mood(info_dict)
     return Response(status=200)
 
 @slack_event_adapter.on('channel_created')
@@ -91,20 +103,28 @@ def handle_workspace_channels(payload):
     #look at payload["channel"]["creator"]
     #to get the bot id - do an api call
     payload = request.form.to_dict()
-    # bot_id = web_client.api_call("auth.test")['bot_id']
     if (check_id(payload, bot_id)):
         #do nothing
         pass
     else:
         #archive the channel
         channel_id = payload["event"]["channel"]["id"]
-        join_rv = web_client.api_call("conversation.join", params=channel_id) #not sure if that's how we specify the channel
+        #bot joins, https://api.slack.com/methods/conversations.list
+        join_rv = web_client.conversations_join(channel=channel_id) 
         if (not join_rv["ok"]):
             print(join_rv["error"])
-        archive_rv = web_client.api_call("conversations.archive", params=channel_id) #need to add channels:manage scope
+        #bot archives channel, https://api.slack.com/methods/conversations.archive
+        archive_rv = web_client.conversations_archive(channel=channel_id) 
         if (not archive_rv["ok"]):
             print(join_rv["error"])
     return Response(status=200)
+
+# Determines if the slash command payload is defective. Created since the slash 
+# command payload differs from the event payload. 
+def check_valid_slash_command_payload(payload, team_id, token):
+    if ("token" not in payload or payload["token"] != token) or ("team_id" not in payload or payload["team_id"] != team_id) or ("channel_id" not in payload or payload["channel_id"] == "") or ("user_id" not in payload or payload["user_id"] == ""):
+        return False
+    return True
 
 # handle_slash_command is the default function called when a slash command is 
 # sent by a user in the workspace. Payload sent by Slack is parsed for 
@@ -113,9 +133,9 @@ def handle_workspace_channels(payload):
 @bot_app.route('/slash-command', methods=['POST'])
 def handle_slash_command():
     payload = request.form.to_dict()
-    team_id = "1"
-    token = "2"
-    if check_valid_payload(payload, team_id, token) == False:
+    team_id = "team_id"
+    token = "token"
+    if check_valid_slash_command_payload(payload, team_id, token) == False:
         return Response(status=400)
     resp = Response(status=200)
     # payload['command'] will always be valid slash command due to Slack 
@@ -252,6 +272,16 @@ def handle_disable_mood_messages_invocation(payload):
         return invalid_resp
     # call disable_mood_messages function HERE
     return Response(status=200)
+
+'''
+# Commented out since Bolt App set up isn't initalized (due to valid tokens 
+# being needed at runtime)
+@bot_app.route("/slack/events", methods=["POST"])
+def slack_events():
+    # Handler sends over the HTTP POST request sent over by Slack, to the 
+    # appropiate functions above depending on event. 
+    return handler.handle(request)
+'''
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":

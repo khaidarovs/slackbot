@@ -45,18 +45,18 @@ class TestSlashCommandHandling(unittest.TestCase):
     # was invoked from. 
     def make_defective_payload(self, command, text):
         return {
-            'team_id': 'team-id', 'team_domain': 'team-domain', 
-            'channel_name': '', 'user_id': 'user-id', 
-            'user_name': 'user-name', 'command': command, 'text': text
+            'token': '', 'team_id': 'team-id', 'team_domain': 'team-domain', 
+            'channel_name': '', 'user_id': '', 'user_name': 'user-name', 
+            'command': command, 'text': text
             }
     def make_non_defective_payload(self, command, text):
         return {
-            'team_id': 'team-id', 'team_domain': 'team-domain', 
-            'channel_id': 'channel-id', 'channel_name': 'channel-name', 
-            'user_id': 'user-id', 'user_name': 'user-name', 
-            'command': command, 'text': text
+            'token': 'token', 'team_id': 'team_id', 'team_domain': 'team_domain', 
+            'channel_id': 'channel_id', 'channel_name': 'channel_name', 
+            'user_id': 'user_id', 'user_name': 'user_name', 'command': command, 
+            'text': text
         }
-    
+
     # Compare if the responses are the same string messages or are the same 
     # response types.
     def same_responses(self, resp1, resp2):
@@ -211,11 +211,24 @@ class TestSlashCommandHandling(unittest.TestCase):
         valid_command_payload_no_optionals_2 = self.make_non_defective_payload(self.meetup_command, "2d 6s")
         actual_response = bot.handle_meetup_invocation(valid_command_payload_no_optionals_2)
         self.assertTrue(self.same_responses(actual_response, self.valid_payload_response))
+    
+    # check_valid_slash_command_payload tests. Added this test since we found 
+    # that the event and slash command payloads differ in their JSON structure.
+    def test_check_valid_slash_command_payload(self):
+        valid_payload = self.make_non_defective_payload(self.disable_activity_warnings_command, '2h')
+        actual_response = bot.check_valid_slash_command_payload(valid_payload, valid_payload["team_id"], valid_payload["token"])
+        self.assertTrue(actual_response)
+        invalid_payload = self.make_defective_payload(self.disable_activity_warnings_command, '2h')
+        actual_response = bot.check_valid_slash_command_payload(invalid_payload, "not-the-team_id", "not-the-token")
+        self.assertFalse(actual_response)
+        invalid_payload = {'team_domain': 'team-domain', 'user_name': 'user-name', 'command': 'command', 'text': 'text'}
+        actual_response = bot.check_valid_slash_command_payload(invalid_payload, "not-the-team_id", "not-the-token")
+        self.assertFalse(actual_response)
 
 """
 A test suite for the handle_message_event() function which tests the two 
-functions that are used inside: check_valid_payload() and parse_payload().
-- The first test is going to check whether the check_valid_payload() function
+functions that are used inside: check_valid_event_payload() and parse_payload().
+- The first test is going to check whether the check_valid_event_payload() function
 determines whether the payload is missing any information
 - The second test is going to check whether parse_payload() is able to determine 
 whether the subtype of the message event is irrelevant and thus returns an empty dictionary,
@@ -337,10 +350,10 @@ class TestCheckingPayload(unittest.TestCase):
         print("TESTING THE VALID PAYLOAD\n")
         team_id = "T061EG9RZ"
         token = "z26uFbvR1xHJEdHE1OQiO6t8"
-        self.assertTrue(bot.check_valid_payload(self.payload, team_id, token))
-        self.assertFalse(bot.check_valid_payload(self.bad_payload, team_id, token))
-        self.assertFalse(bot.check_valid_payload(self.bad_payload2, team_id, token))
-        self.assertFalse(bot.check_valid_payload(self.bad_payload3, team_id, token))
+        self.assertTrue(bot.check_valid_event_payload(self.payload, team_id, token))
+        self.assertFalse(bot.check_valid_event_payload(self.bad_payload, team_id, token))
+        self.assertFalse(bot.check_valid_event_payload(self.bad_payload2, team_id, token))
+        self.assertFalse(bot.check_valid_event_payload(self.bad_payload3, team_id, token))
 
     def test_parsing_payload(self):
         print("TESTING PARSING THE PAYLOAD\n")
