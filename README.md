@@ -1,13 +1,16 @@
-<<<<<<< meetup_time_schedule
-## Acceptance tests:
-You can enter a time in the form of "XsXmXhXd" where X are different integers.
 
-## meetup converts string explaination of a time to seconds
-wait_message adds a log to the database with the meeting timestamp, location, message
-in_five checks whether an event occurs within the next five minutes. If so, a message will be sent after a delay.
-
+## Meetup:
 Made by Maya Hall and Jason Huang
-We plan to change the storage method to Firebase in the near future. Additionally, we intend to add alternate formats/features for meet times.
+- `meetup`, adds a log to the database with the meeting timestamp, location, message. You can enter a time in the form of "XsXmXhXd" where X are different integers. Meetup converts string explaination of a time to seconds.
+- `wait_message`, will stores a combination of a location, a message, and a time as a varaible into a database.
+- `in_five`, checks whether any events in the database occurs within the next five minutes. If so, a message will be sent after a delay. This command will automatically be called every five minutes while the bot is active.
+
+## Meetup Test Changes
+- We realized that the previous tests for `in_five` pulled data from the wrong location. The test have been adjusted to pull information from the correct location designated in our code.
+
+## Future Plans
+- We plan to change the storage method to Firebase in the near future.
+- Additionally, we intend to add alternate formats/features for meet times and include reminders for further versitility.
 
 ## Running Tests
 Run `python unittest -m discover` in the main directory to run all the tests.
