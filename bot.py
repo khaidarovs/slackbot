@@ -17,11 +17,11 @@ bot_app = Flask(__name__)
 # of the Slack workspace developer console. By "/slack/events" is the endpoint that you would
 # attach to the end of the ngrok link when inputting the request URL in the "Event Subscriptions"
 # -> "Enable Events" section of the Slack workspace developer console.  
-slack_event_adapter = SlackEventAdapter(os.environ['SIGNING_SECRET'], "/slack/events", bot_app)
+slack_event_adapter = SlackEventAdapter(os.environ["SIGNING_SECRET"], "/slack/events", bot_app)
 
 # You can find the bot token in the "OAuth & Permissions" section of the Slack workspace developer 
 # console.
-web_client = WebClient(token=os.environ['BOT_TOKEN'])
+web_client = WebClient(token=os.environ["BOT_TOKEN"])
 
 # Functions we"d implement would be here.
 
