@@ -1,6 +1,12 @@
 import unittest
 from onboarding import *
 
+'''
+    Note: We discovered that these tests require a user to be active in the workspace; 
+          since we were unable to find a workaround for this in the given time frame,
+          the onboarding tests have been temporarily omitted from the test suite.
+'''
+
 class TestOnboarding(unittest.TestCase):
     def setUp(self):
         #Find a valid user in the workspace to test
