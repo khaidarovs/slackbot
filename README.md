@@ -44,8 +44,12 @@ Run `python unittest -m discover` in the main directory to run all the tests.
 To run specific tests, run `python -m unittest -k test_name` (e.g. `python -m unittest -k test_welcome_new_user`).
 
 ## Onboarding (Sabine and Grace)
+Functionality:
+- `welcome_new_user(payload)`: Instructs the user on how to join a class when they first join the workspace. Returns a Slack API generated success message on success, and False otherwise.
+- `handle_onboarding(class_name, user_id)`: Adds the given student to the given class channel, creating the channel if it doesn't already exist. Returns an object with the channel information on success, and a Slack API generated error otherwise.
+- `check_channels(class_name)`: Verifies whether a class channel exists within the workspace, returning True if it does and False otherwise.
 
-## Onboarding Test Changes (3.B)
+### Onboarding Test Changes (3.B)
 We realized that the tests utilize events operating in the workspace we created; thus, we had to revamp them a bit to get them to work properly.
 
 `test_welcome_new_user()`:
