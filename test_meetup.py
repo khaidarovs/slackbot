@@ -1,6 +1,6 @@
 import unittest
 import time
-from bot import *
+from bot_meetup import *
 #from firebase import Firebase
 
 # this first set of unit tests makes sure that the formatting of the time and calculating the value in seconds
