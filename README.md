@@ -3,7 +3,7 @@
 In order to run the tests:
 
 1. cd into the slackbot directory 
-2. Place the `slackbot-v1-firebase-adminsdk-n7ggn-fcdad3e5ca` inside the slackbot directory before running the tests
+2. Place the `slackbot-v1-firebase-adminsdk-n7ggn-fcdad3e5ca.json` inside the slackbot directory before running the tests
 3. Run `pip install -r requirements.txt` to install the necessary requirements
 4. Run the tests using the commands below:
 
