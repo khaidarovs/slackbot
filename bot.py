@@ -23,7 +23,7 @@ slack_event_adapter = SlackEventAdapter(os.environ["SIGNING_SECRET"], "/slack/ev
 # console.
 web_client = WebClient(token=os.environ["BOT_TOKEN"])
 
-# Functions we'd implement would be here.
+# Functions we"d implement would be here.
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
