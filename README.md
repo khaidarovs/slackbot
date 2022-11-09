@@ -2,13 +2,15 @@
 
 In order to run the tests:
 
+1. cd into the slackbot directory 
+2. Place the `slackbot-v1-firebase-adminsdk-n7ggn-fcdad3e5ca` inside the slackbot directory before running the tests
+
+
 `python unittest -m discover`
 
 or 
 
 `python3 unittest -m discover`
-
-To run specific tests, run `python -m unittest -k test_name` (e.g. `python -m unittest -k test_welcome_new_user`).
 
 Each feature is described in more detail below
 
@@ -56,10 +58,6 @@ Testing changes:
 ## Future Plans
 - We plan to change the storage method to Firebase in the near future.
 - Additionally, we intend to add alternate formats/features for meet times and include reminders for further versitility.
-
-## Running Tests
-Run `python unittest -m discover` in the main directory to run all the tests.
-To run specific tests, run `python -m unittest -k test_name` (e.g. `python -m unittest -k test_welcome_new_user`).
 
 # Onboarding (Sabine and Grace)
 Functionality:
