@@ -82,11 +82,19 @@ Slack Bot. This includes the following functions:<br />
  - `check_activity()`<br />
  - `send_activity_warning()` <br />
 
+## Functions tested
+These tests are unit tests for the *"Mood Messages"* functionality of the Slack Bot. This includes the following functions:<br />
+ - `enable_mood_messages()`<br />
+ - `disable_mood_messages()`<br />
+ - `set_mood_messages_content`<br />
+ - `check_mood()`<br />
+ - `send_mood_message()` <br />
+ - 
  ### Notes
- Currently, the Activity Warnings feature only can be run in one place at a time,
+ Currently, the Activity Warnings and Mood Messages feature only can be run in one place at a time,
  as the Firebase DB has not been fully configured to handle multiple channels and 
  servers. This will be fixed in a future sprint.<br /><br />
- Currently, Activity Warnings scheduled sending has not been implemented in iteration
+ Currently, Activity Warnings and Mood Messages scheduled sending has not been implemented in iteration
  1 but will be implemented in iteration 2. The code in this iteration is foundational
  for checking activity; i.e. a function that gets the last N messages, and a function
  that actually sends the activity message. Scheduled sending and the simple
