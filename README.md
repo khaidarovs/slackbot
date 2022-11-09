@@ -16,13 +16,7 @@ Made by Maya Hall and Jason Huang
 Run `python unittest -m discover` in the main directory to run all the tests.
 To run specific tests, run `python -m unittest -k test_name` (e.g. `python -m unittest -k test_welcome_new_user`).
 
-## Onboarding (3.A)
-The initial tests revealed better ways to structure the onboarding process, so we restructured our approach to center around three main functions:
-- `welcome_new_user()`, which instructs the user on how to join a class
-- `handle_onboarding(string class_name)`, which handles the process of creating new channels and adding users
-- `check_channels(string class_name)`, a helper to `handle_onboarding()` that checks if a class channel already exists.
-
-We also decided to let the bot automatically handle the creation of classes, rather than prompting the user to do so.
+## Onboarding (Sabine and Grace)
 
 ## Onboarding Test Changes (3.B)
 We realized that the tests utilize events operating in the workspace we created; thus, we had to revamp them a bit to get them to work properly.
