@@ -15,15 +15,22 @@ For handle_message_event we created 2 helper functions that check if the payload
 
 These tests are unit tests for the "Command Handling" functionality of the Slack Bot. This includes the following functions:
 ```
-- check_valid_payload(payload)
+- check_valid_event_payload(payload)
+- check_valid_slash_command_payload(payload)
 - parse_payload(payload, bot_id)
 - check_id(payload, bot_id)
 - handle_disable_activity_warnings_invocation(payload)
 - handle_set_activity_warning_threshold_invocation(payload)
-- handle_set_activity_warning_content_invocation(payload)
 - handle_disable_mood_messages_invocation(payload)
 - handle_join_class_invocation(payload)
 - handle_meetup_invocation(payload)
 - is_time_format_valid
 - handle_slash_command()
 ```
+
+## Changes from Milestone 3A
+
+Main outlined features were implemented, with the following function changes. 
+- Removed handle_set_activity_warning_content_invocation(payload) function since we decided the slash command text didn't need any special parsing.
+- check_valid_payload became check_valid_event_payload and check_valid_slash_command_payload(payload) since we found the event and slash command JSON payloads slightly differed in structure.
+Currently a .env file containing the necessary token information for a given workspace is needed in order to live test the bot, along with the creation of a slack workspace as well. 
