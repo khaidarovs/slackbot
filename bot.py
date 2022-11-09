@@ -28,4 +28,3 @@ web_client = WebClient(token=os.environ["BOT_TOKEN"])
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True)
-    
