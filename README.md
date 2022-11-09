@@ -66,6 +66,8 @@ Functionality:
 - `handle_onboarding(class_name, user_id)`: Adds the given student to the given class channel, creating the channel if it doesn't already exist. Returns an object with the channel information on success, and a Slack API generated error otherwise.
 - `check_channels(class_name)`: Verifies whether a class channel exists within the workspace, returning True if it does and False otherwise.
 
+We were able to run all the tests for our functions with no issue initially. but we later realized that our tests were contingent on having an active user in the space. In the next iteration, we will find a workaround for this issue.
+
 ### Onboarding Test Changes (3.B)
 We realized that the tests utilize events operating in the workspace we created; thus, we had to revamp them a bit to get them to work properly.
 
