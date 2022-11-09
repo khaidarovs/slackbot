@@ -4,7 +4,7 @@ from onboarding import *
 class TestOnboarding(unittest.TestCase):
     def setUp(self):
         #Find a valid user in the workspace to test
-        users = web_client.users_list()
+        users = web_client.users_list() 
         self.test_user_id = users.get('members')[2].get('id')
 
         self.general_join_event = {
