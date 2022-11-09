@@ -6,7 +6,7 @@ from flask import Flask
 from slackeventsapi import SlackEventAdapter
 
 # Load the tokens from the ".env" file, which are set up as environment variables. 
-# You"ll need the signing secret and bot token from the Slack developer console 
+# You'll need the signing secret and bot token from the Slack developer console 
 # for a workspace, which you put in a file you make called ".env". It prevents a 
 # security risk related to revealing secret keys in public. 
 load_dotenv()
