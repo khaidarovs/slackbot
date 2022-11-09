@@ -1,23 +1,16 @@
 from dotenv import load_dotenv
-import json
 import os
 from slack import WebClient
 from flask import Flask, request, Response
 from slackeventsapi import SlackEventAdapter
 import firebase_admin
 from firebase_admin import credentials, db
-import time
 
 from nltk import download
-import matplotlib.pyplot as plt
 from nltk.sentiment import SentimentIntensityAnalyzer
 
 load_dotenv()
 
-cred = credentials.Certificate(os.environ['SVC_ACCT_KEY'])
-firebase_admin.initialize_app(cred, {
-    'databaseURL': os.environ['DBURL']
-})
 ref = db.reference('mood_messages_vars/')
 
 # Load the tokens from the ".env" file, which are set up as environment variables. 

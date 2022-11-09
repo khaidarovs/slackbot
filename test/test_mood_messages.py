@@ -1,7 +1,7 @@
 
 import unittest
 from unittest.mock import patch
-from bot import *
+from mood_messages_bot import *
 import requests
 
 # Filename: test_mood_messages.py

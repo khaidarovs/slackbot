@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from bot import *
+from activity_warnings_bot import *
 import requests
 
 # Filename: test_activity_warnings.py
