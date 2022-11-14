@@ -112,20 +112,18 @@ def get_channel_name(channel_id):
         if id == channel_id:
             return name
 
-
 def get_channel_id(name_normalized):
     '''
         Returns the ID of the channel with the given name.
 
         Input: name_normalized(str): the channel to be searched for
 
-        Output: (str) the ID of the found channel
+        Output: (str) the ID of the found channel 
     '''
     channels = fetch_conversations()
     for id, name in channels:
         if name == name_normalized:
             return id
-
 
 def send_im_message(userid, text):
     '''
