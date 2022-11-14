@@ -59,7 +59,6 @@ def save_conversations(conversations):
         conversation_id = conversation["id"]
         channels.append([conversation["id"], conversation["name"]])
         # Store the entire conversation object
-        # (you may not need all of the info)
         conversations_store[conversation_id] = conversation
     return channels
 
@@ -140,7 +139,6 @@ def send_im_message(userid, text):
                          SlackApiError on failure
     '''
 
-    channel_id = ""
     try:
         rv = web_client.chat_postMessage(channel=userid, text=text)
     except SlackApiError as e:

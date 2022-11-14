@@ -105,5 +105,17 @@ class TestOnboarding(unittest.TestCase):
         self.assertTrue(check_channel(lwr_existing_channel))
         self.assertTrue(check_channel(mixed_existing_channel))
 
+    def test_normalize_channel_name(self):
+        pass
+
+    def test_get_channel_name(self):
+        pass
+
+    def test_get_channel_id(self):
+        pass
+
+    def test_send_im_message(self):
+        pass
+
 if __name__ == '__main__':
     unittest.main()
