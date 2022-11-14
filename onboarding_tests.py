@@ -35,6 +35,7 @@ class TestOnboarding(unittest.TestCase):
         if not check_channel(existing_class):
             web_client.conversations_create(name=existing_class, is_private=True)
     
+
     def test_welcome_new_user(self):
         def make_event_payload(event):
             base_event = {
@@ -66,6 +67,7 @@ class TestOnboarding(unittest.TestCase):
 
         rv = welcome_new_user(make_event_payload(self.general_join_event))
         self.assertTrue(rv.get('ok'))
+
 
     def test_handle_onboarding(self):
         new_class = 'cmsc-76001'
@@ -105,17 +107,42 @@ class TestOnboarding(unittest.TestCase):
         self.assertTrue(check_channel(lwr_existing_channel))
         self.assertTrue(check_channel(mixed_existing_channel))
 
+
     def test_normalize_channel_name(self):
-        pass
+        capital = "CMSC-22222"
+        lower = "span-12345"
+        mixed = "sOSc-87462"
 
-    def test_get_channel_name(self):
-        pass
+        self.assertEqual(normalize_channel_name(capital), "cmsc-22222")
+        self.assertEqual(normalize_channel_name(lower), "span-12345")
+        self.assertEqual(normalize_channel_name(mixed), "sosc-87462")
 
-    def test_get_channel_id(self):
-        pass
+
+    # tests for get_channel_name and get_channel_id
+    def test_get_channel_info(self):
+        channels = fetch_conversations()
+        channel_ids = [el[0] for el in channels]
+
+        general_id = get_channel_id("general")
+        self.assertTrue(general_id in channel_ids)
+        
+        general_name = get_channel_name(general_id)
+        self.assertEqual(general_name, "general")
+        
+
+        random_id = get_channel_id("random")
+        self.assertTrue(random_id in channel_ids)
+
+        random_name = get_channel_name(random_id)
+        self.assertEqual(random_name, "random")
+
 
     def test_send_im_message(self):
-        pass
+        rv = send_im_message(self.test_user_id, "this is a test message")
+        self.assertTrue(rv.get('ok'))
+
+        rv = send_im_message("NotAUser", "this is a test message")
+        self.assertFalse(rv.get('ok'))
 
 if __name__ == '__main__':
     unittest.main()
