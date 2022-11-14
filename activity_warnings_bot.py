@@ -14,7 +14,7 @@ cred = credentials.Certificate(os.environ['SVC_ACCT_KEY'])
 firebase_admin.initialize_app(cred, {
     'databaseURL': os.environ['DBURL']
 })
-ref = db.reference('activity_warning_vars/')
+ref = db.reference('slackbot/')
 
 # Load the tokens from the ".env" file, which are set up as environment variables. 
 # You'll need the signing secret and bot token from the Slack developer console 
@@ -36,15 +36,38 @@ slack_event_adapter = SlackEventAdapter(SIGNING_SECRET, "/slack/events", bot_app
 
 web_client = WebClient(token=BOT_TOKEN)
 
-# Variables for the bot
-
-# Activity Warning Variables
-activity_warnings_enabled = ref.child('activity_warnings_enabled')
-activity_warnings_threshold = ref.child('activity_warnings_threshold')
-activity_warnings_downtime = ref.child('activity_warnings_downtime')
-activity_warnings_content = ref.child('activity_warnings_content')
-
 # Functions we'd implement would be here.
+
+# firebase_db_init
+
+# Initializes firebase database references for a given channel id. If this is 
+# called and the firebase database references already exist, the function
+# does nothing
+# INPUT
+# - channel id
+# OUTPUT
+# - db references initialized to default values 
+# - returns reference to channel in firebase db
+def firebase_db_init(channel_id):
+    channelref = ref.child(channel_id)
+    if channelref.get() != None:
+        # already exists in db
+        return channelref
+    # doesnt exist. So we init the vars
+    channelref.set({
+        'activity_warning_vars':{
+            'activity_warnings_content':"Let's get more active!",
+            'activity_warnings_downtime':"",
+            'activity_warnings_enabled':False,
+            'activity_warnings_threshold':5
+        },
+        'mood_messages_vars':{
+            'mood_message_content':"Let's be more positive!",
+            'mood_messages_downtime':"",
+            'mood_messages_enabled':False
+        }
+    })
+    return channelref
 
 # enable_activity_warnings
 #
@@ -69,9 +92,15 @@ def enable_activity_warnings(self):
     user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
 
+    # Let's make sure that the Firebase DB has been initialized
+    # Also, let's get the channel reference
+    channelref = firebase_db_init(channel_id)
+    activity_warning_vars_ref = channelref.child('activity_warning_vars')
+    activity_warnings_threshold = activity_warning_vars_ref.child('activity_warnings_threshold').get()
+
     # Parse message to send
-    threshold_text = "Activity warning threshold is set to "  + activity_warnings_threshold.get()
-    if activity_warnings_threshold.get() == 5:
+    threshold_text = "Activity warning threshold is set to " + str(activity_warnings_threshold)
+    if activity_warnings_threshold == 5:
         threshold_text += " (default)."
     else:
         threshold_text += "."
@@ -98,7 +127,8 @@ def enable_activity_warnings(self):
     }
     if not is_test: # From Slack, not from Tests
         retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
-    ref.update({
+
+    activity_warning_vars_ref.update({
         'activity_warnings_enabled':True
     })
     return cmd_output
@@ -115,12 +145,17 @@ def disable_activity_warnings(self):
     user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
 
+    # Let's make sure that the Firebase DB has been initialized
+    # Also, let's get the channel reference
+    channelref = firebase_db_init(channel_id)
+    activity_warning_vars_ref = channelref.child('activity_warning_vars')
+
     # Parse message to send
     user_given_text = payload["text"]
     if user_given_text == "":
         # Payload is empty, disable indefinitely
         downtime_response = "Activity warnings disabled indefinitely."
-        ref.update({
+        activity_warning_vars_ref.update({
         'activity_warnings_downtime':""
         })
     else:
@@ -128,10 +163,10 @@ def disable_activity_warnings(self):
         finalchar = user_given_text[-1]
         if finalchar != -1:
             downtime_response = "Activity warnings disabled for " + payload["text"] + "."
-        ref.update({
+        activity_warning_vars_ref.update({
         'activity_warnings_downtime':payload["text"]
         })
-    ref.update({
+    activity_warning_vars_ref.update({
     'activity_warnings_enabled':False
     })
     fallback_msg = "Disabled activity warnings. " + downtime_response
@@ -168,6 +203,12 @@ def set_activity_warnings_threshold(self):
     # Extract data from payload
     user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
+
+    # Let's make sure that the Firebase DB has been initialized
+    # Also, let's get the channel reference
+    channelref = firebase_db_init(channel_id)
+    activity_warning_vars_ref = channelref.child('activity_warning_vars')
+
     # Parse message to send
     response_text = "*Set activity warning threshold to " + str(payload["text"]) + ".*"
     fallback_msg = response_text
@@ -188,8 +229,8 @@ def set_activity_warnings_threshold(self):
     if not is_test: # From Slack, not from Tests
         retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
     # Set values
-    ref.update({
-    'activity_warnings_threshold':str(payload["text"])
+    activity_warning_vars_ref.update({
+    'activity_warnings_threshold':int(payload["text"])
     })
     return cmd_output
 
@@ -204,19 +245,26 @@ def set_activity_warnings_content(self):
     # Extract data from payload
     user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
+    
+    # Let's make sure that the Firebase DB has been initialized
+    # Also, let's get the channel reference
+    channelref = firebase_db_init(channel_id)
+    activity_warning_vars_ref = channelref.child('activity_warning_vars')
 
-    # Parse message to send
+    #Update firebase DB vars
     if payload["text"] == "":
         # Set to default
-        ref.update({
+        activity_warning_vars_ref.update({
         'activity_warnings_content':"Let's get more active!"
         })
     else:
         # Set to that indicated by user
-        ref.update({
+        activity_warning_vars_ref.update({
         'activity_warnings_content':payload["text"]
         })
-    fallback_msg = "Set activity warnings content to:\n" + activity_warnings_content.get()
+    activity_warnings_content = channelref.child('activity_warning_vars').child("activity_warnings_content").get()
+    # Parse message to send
+    fallback_msg = "Set activity warnings content to:\n" + activity_warnings_content
     cmd_output ={"blocks": [{
         "type": "section",
         "text": {
@@ -226,7 +274,7 @@ def set_activity_warnings_content(self):
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": activity_warnings_content.get()
+            "text": activity_warnings_content
                 }}]}
     # Send msg to user
     msg_construct = {
@@ -278,6 +326,12 @@ def send_activity_warning(self):
     user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
 
+    # Let's make sure that the Firebase DB has been initialized
+    # Also, let's get the channel reference
+    channelref = firebase_db_init(channel_id)
+    activity_warning_vars_ref = channelref.child('activity_warning_vars')
+    activity_warnings_content = activity_warning_vars_ref.child('activity_warnings_content').get()
+
     cmd_output ={"blocks": [{
     "type": "section",
     "text": {
@@ -287,9 +341,9 @@ def send_activity_warning(self):
     "type": "section",
     "text": {
         "type": "mrkdwn",
-        "text": activity_warnings_content.get()
+        "text": activity_warnings_content
     }}]}
-    fallback_msg = activity_warnings_content.get()
+    fallback_msg = activity_warnings_content
     msg_construct = {
     "token":BOT_TOKEN,
     "channel":channel_id,
