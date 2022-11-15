@@ -354,6 +354,33 @@ def send_activity_warning(self):
         retval = web_client.chat_postMessage(**msg_construct)
     return cmd_output
         
+def check_send_activity_warning(self):
+# TODO: This function is not yet implemented. It only has test features in it
+    # Get dataa
+    payload = self.payload
+
+    # First check if this is a test or not
+    is_test = False
+    if payload.get('token') == "test_token_1":
+        is_test = True
+    # Extract data from payload
+    user_id = payload.get('user_id')
+    channel_id = payload.get('channel_id')
+
+    # If it's test, then we have a dummy messages return from check_activity
+    n_msgs = check_activity(self)
+    
+    # Let's make sure that the Firebase DB has been initialized
+    # Also, let's get the channel reference
+    channelref = firebase_db_init(channel_id)
+    activity_warning_vars_ref = channelref.child('activity_warning_vars')
+    activity_warnings_threshold_ref = activity_warning_vars_ref.child('activity_warnings_threshold')
+    send_msg = activity_warnings_threshold_ref.get() >= n_msgs
+    if (send_msg):
+        # We're below the threshold, lets send msg
+        send_activity_warning(self)
+    return send_msg # True if msg sent, False if not
+
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True)

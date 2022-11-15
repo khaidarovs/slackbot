@@ -40,7 +40,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         # Now we indicate our expected output
         # Note: this is an ephemeral message. This message will only be visible
         # To the user who called the command
-        threshold_text = "Activity warning threshold is set to "  + activity_warnings_threshold.get()
+        threshold_text = "Activity warning threshold is set to "  + str(activity_warnings_threshold.get())
         if activity_warnings_threshold.get() == 5:
             threshold_text += " (default)."
         else:
@@ -526,7 +526,74 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         # Cleanup
         ref.child('CTEST3').delete()
         ref.child('CTEST4').delete()
+    # This test case is for the the check_send_activiy_warnings function which
+    # calls check_activity and send_activity_message, and this function is called
+    # on a schedule every 24hrs. This checks the case when no activity msg is sent
+    def test_check_send_activity_warnings_nosend(self):
 
+        # The test for check_activity uses 10 msgs. So we want to change the 
+        # threshold real quick to a value less than 10
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST1",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/set_activity_warning_threshold",
+            "text":"5",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        set_activity_warnings_threshold(self)
+        # Now we can proceed
+        input = {
+        "token":"test_token_1",
+        "channel_id":"CTEST1",
+        "user_id":"Test_User_1"
+        }
+        self.payload = input
+
+        cmd_output = check_send_activity_warning(self)
+        self.assertFalse(cmd_output)
+        
+
+    # This test case is for the the check_send_activiy_warnings function which
+    # calls check_activity and send_activity_message, and this function is called
+    # on a schedule every 24hrs. This checks the case when the activity msg is sent
+    def test_check_send_activity_warnings_dosend(self):
+
+        # The test for check_activity uses 10 msgs. So we want to change the 
+        # threshold real quick to a value more than or equal to 10
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST1",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/set_activity_warning_threshold",
+            "text":"15",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        set_activity_warnings_threshold(self)
+        # Now we can proceed
+        input = {
+        "token":"test_token_1",
+        "channel_id":"CTEST1",
+        "user_id":"Test_User_1"
+        }
+        self.payload = input
+
+        cmd_output = check_send_activity_warning(self)
+        self.assertTrue(cmd_output)
 
 if __name__ == '__main__':
     unittest.main()
