@@ -61,24 +61,13 @@ Testing changes:
 - Additionally, we intend to add alternate formats/features for meet times and include reminders for further versitility.
 
 # Onboarding (Sabine and Grace)
-Functionality:
-- `welcome_new_user(payload)`: Instructs the user on how to join a class when they first join the workspace. Returns a Slack API generated success message on success, and False otherwise.
-- `handle_onboarding(class_name, user_id)`: Adds the given student to the given class channel, creating the channel if it doesn't already exist. Returns an object with the channel information on success, and a Slack API generated error otherwise.
-- `check_channels(class_name)`: Verifies whether a class channel exists within the workspace, returning True if it does and False otherwise.
+We added additional tests for helpers that we implemented in the previous iteration, including:
+- `normalize_channel_name(string channel_name)`, which ensures that class channels have all lowercase class codes
+- `get_channel_name(string channel_id)`, which returns the name of a channel given its id
+- `get_channel_id(string name_normalized)`, which returns the id of a channel given its name
+- `send_im_message(string userid, string test)`, which sends a direct message to a specific user
 
-We were able to run all the tests for our functions with no issue initially. but we later realized that our tests were contingent on having an active user in the space. In the next iteration, we will find a workaround for this issue.
-
-### Onboarding Test Changes (3.B)
-We realized that the tests utilize events operating in the workspace we created; thus, we had to revamp them a bit to get them to work properly.
-
-`test_welcome_new_user()`:
-- We realized that the previous tests for `welcome_new_user()` wouldn't have worked, so we created a helper function to simulate different payloads, and used this to simulate a user joining a non-general and general channel.
-
-`test_handle_onboarding()`:
-- Instead of trying to fake a payload for the new and existing channels, we use the Slack API to create channels in the workspace, verify if a channel does/doesn't exist, and test whether or not a user is properly added to a channel. We also make use of the Slack API to remove users from channels prior to running the tests, to avoid unpredictable behavior.
-
-`test_check_channel()`:
-- We moved the code for creating the existing channel into the setUp() function, since multiple test make use of that class.
+In this upcoming iteration, we plan on revising our previous tests to ensure they can run under any conditions, and collecting data needed to archive a class channel once the class ends.
 
 # Activity Warning Branch - Matt and Maya G
 ### Running the tests
