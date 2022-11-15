@@ -11,7 +11,8 @@ from bot_meetup import *
 # function is called with a specific time specified, that it subsequently sends a message to everyone in the channel that there will be a meeting
 # in x amount of time, and that depending on what units (s,d,h,m) are used, how the message will be sent. Also, if an opitonal location parameter is 
 # added, then that should also be written in the message. Finally, we want to be able to implement firebase in this implementation, so there will be
-# unit tests that will test that the database is being updated properly.
+# unit tests that will test that the database is being updated properly. Those tests will look almost the same, but this time it is going to be testing
+# whether firebase is working correctly.
 
 class TestMeetupMessage(unittest.TestCase):
     def test_something(self):
