@@ -23,6 +23,10 @@ class TestMeetupMessage(unittest.TestCase):
                         "text":"/meetup 5h",
                         "ts":"13334344"
                 }
+        # ***THE TESTS FOR THE MEETUP FUNCTION THAT REMAINED THE SAME ARE THAT WAY
+        # BECAUSE THESE ARE NEEDED IN ADDITION TO THE NEW FEATURE THAT DETERMINES WHETHER
+        # THE MESSAGE THAT IS GENERATED WITH THE MEETUP FUNCTION WAS CORRECTLY SENT TO THE 
+        # CHANNEL
         # tests if seconds returns correct second value.
         self.assertEqual(meetup("1s"), 1)
         #NEW: tests if message is correctly sent in the payload.
@@ -39,7 +43,7 @@ class TestMeetupMessage(unittest.TestCase):
         self.assertEqual(meetup("1d30m"), 88200)
         #NEW: tests if message is correctly sent in the payload.
         self.assertEqual(self.payload["type"], "meetup in 1 day and 30 minutes!")
-        # tests whether extra space can return successfully.
+        # tests whether extra space can return successfully. 
         self.assertEqual(meetup("1d 30m"), 88200)
         # tests if multipe ordering of the different time units can return successfully.
         self.assertEqual(meetup("30m1d"), 88200)
@@ -67,7 +71,7 @@ class TestMeetupMessage(unittest.TestCase):
             "user": "U04995560FK",
             "text": "/meetup 5h",
             "ts": "0"
-        }
+        } 
         # "timestamps" is a child of the firebase database that holds all of the timestamps that are entered into
         # the database
         # this returns false because no times have been entered into the database yet.
