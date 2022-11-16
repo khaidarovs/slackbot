@@ -22,7 +22,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             "token":"test_token_1",
             "team_id":"T0001",
             "team_domain":"test_domain",
-            "channel_id":"C2147483705",
+            "channel_id":"CTEST1",
             "channel_name":"Test_Channel_1",
             "user_id":"U2147483697",
             "user_name":"Test_User_1",
@@ -35,7 +35,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
         self.payload = slash_cmd
         # Get channel ref in firebase db
         channelref = ref.child("CTEST1")
-        mood_messages_enabled = channelref.child('mood_message_vars').child('mood_messages_enabled')
+        mood_messages_enabled = channelref.child('mood_messages_vars').child('mood_messages_enabled')
         # Now we indicate our expected output
         # Note: this is an ephemeral message. This message will only be visible
         # To the user who called the command
@@ -65,7 +65,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             "token":"test_token_1",
             "team_id":"T0001",
             "team_domain":"test_domain",
-            "channel_id":"C2147483705",
+            "channel_id":"CTEST1",
             "channel_name":"Test_Channel_1",
             "user_id":"U2147483697",
             "user_name":"Test_User_1",
@@ -118,7 +118,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             "token":"test_token_1",
             "team_id":"T0001",
             "team_domain":"test_domain",
-            "channel_id":"C2147483705",
+            "channel_id":"CTEST1",
             "channel_name":"Test_Channel_1",
             "user_id":"U2147483697",
             "user_name":"Test_User_1",
@@ -169,7 +169,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             "token":"test_token_1",
             "team_id":"T0001",
             "team_domain":"test_domain",
-            "channel_id":"C2147483705",
+            "channel_id":"CTEST1",
             "channel_name":"Test_Channel_1",
             "user_id":"U2147483697",
             "user_name":"Test_User_1",
@@ -221,7 +221,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             "token":"test_token_1",
             "team_id":"T0001",
             "team_domain":"test_domain",
-            "channel_id":"C2147483705",
+            "channel_id":"CTEST1",
             "channel_name":"Test_Channel_1",
             "user_id":"U2147483697",
             "user_name":"Test_User_1",
@@ -235,7 +235,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
 
         # Get channel ref
         channelref = ref.child("CTEST1")
-        mood_message_content = channelref.child('mood_messages_vars').child('mood_messages_content')
+        mood_message_content = channelref.child('mood_messages_vars').child('mood_message_content')
 
         # Now we indicate our expected output
         # Note: this is an ephemeral message. This message will only be visible
@@ -272,7 +272,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
         #check when mood is negative
         inp = {
         "token": "z26uFbvR1xHJEdHE1OQiO6t8",
-        "channel": "C2147483705",
+        "channel": "CTEST1",
         "user": "U2147483697",
         "text": "I am so sad",
         }
@@ -288,7 +288,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
         #Test for when the mood is neutral
         inp1 = {
         "token": "z26uFbvR1xHJEdHE1OQiO6t8",
-        "channel": "C2147483705",
+        "channel": "CTEST1",
         "user": "U2147483697",
         "text": "I am so neutral",
         }
@@ -304,7 +304,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
         #Test for when the mood is neutral
         inp2 = {
         "token": "z26uFbvR1xHJEdHE1OQiO6t8",
-        "channel": "C2147483705",
+        "channel": "CTEST1",
         "user": "U2147483697",
         "text": "I am so happy!",
         }
@@ -325,10 +325,6 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
         input = {
             "token":"test_token_1",
             "channel_id":"CTEST1"
-        }
-        input = {
-            "token":"test_token_1",
-            "channel_id":"C2147483705"
         }
 
         self.payload = input
@@ -356,7 +352,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
         #set mood to positive/neutral
         inp1 = {
         "token": "z26uFbvR1xHJEdHE1OQiO6t8",
-        "channel": "C2147483705",
+        "channel": "CTEST1",
         "user": "U2147483697",
         "text": "I am so positive!",
         }
@@ -395,6 +391,155 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
 
         cmd_output = check_send_mood_message(self.payload, inp2)
         self.assertTrue(cmd_output)
+
+    # This test case tests firebase_db_init by creating a new channel ref and 
+    # ensuring that default values are set properly
+    def test_firebase_db_init_new(self):
+        # First remove existing reference data
+        ref.child('CTEST2').delete()
+        # This is what we expect
+        expected_vals = {
+        'activity_warning_vars':{
+            'activity_warnings_content':"Let's get more active!",
+            'activity_warnings_downtime':"",
+            'activity_warnings_enabled':False,
+            'activity_warnings_threshold':5
+        },
+        'mood_messages_vars':{
+            'mood_message_content':"Let's be more positive!",
+            'mood_messages_downtime':"",
+            'mood_messages_enabled':False
+        }}
+        # Call the function
+        channelref = firebase_db_init('CTEST2')
+        # Check our vals
+        self.assertEqual(expected_vals, channelref.get())
+        # Cleanup: Delete ref
+        ref.child('CTEST2').delete()
+
+    # This test case tests firebase_db_init when a channel already exists, and
+    # ensures that values are not changed when calling this function
+    def test_firebase_db_init_existing(self):
+        # First remove existing reference data
+        ref.child('CTEST2').delete()
+        # Create a new ref, with default vals
+        channelref = firebase_db_init('CTEST2')
+        # Let's directly access the DB to change some values
+        expected_vals = {
+        'activity_warning_vars':{
+            'activity_warnings_content':"Let's get more active, ppl!",
+            'activity_warnings_downtime':"3d",
+            'activity_warnings_enabled':True,
+            'activity_warnings_threshold':16
+        },
+        'mood_messages_vars':{
+            'mood_message_content':"Let's be more positive, ppl!",
+            'mood_messages_downtime':"3d",
+            'mood_messages_enabled':True
+        }}
+        channelref.set(expected_vals)
+        # Now let's call the init func again
+        channelref = firebase_db_init('CTEST2')
+        # We should expect no change
+        self.assertEqual(expected_vals, channelref.get())
+        # Cleanup: Delete ref
+        ref.child('CTEST2').delete()
+
+    # This test case tests all of the previous mood messages functionality
+    # but in different channels, ensuring that data is saved properly in
+    # respective channels in the Firebase DB
+    def test_all_diff_channels(self):
+        # Let's create 2 new channels: CTEST3, CTEST4, with default vals
+        ref.child('CTEST3').delete()
+        ref.child('CTEST4').delete()
+        channelref3 = firebase_db_init('CTEST3')
+        channelref4 = firebase_db_init('CTEST4')
+        # Let's change some stuff in channel3, channel4 by using commands
+        # These are the vars we want to test:
+        # - mood_messages_enabled
+        # - mood_messages_downtime
+        # - mood_messages_content
+        # We want differing values for each of these.
+        # First, mood_messages_enabled & mood_messages_downtime
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST3",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/enable_mood_messages",
+            "text":"",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        enable_mood_messages(self.payload)
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST4",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/disable_mood_messages",
+            "text":"3d",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        disable_mood_messages(self.payload)
+        # Finally, mood_message_content
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST3",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/set_mood_messages_content",
+            "text":"lol",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        set_mood_messages_content(self.payload)
+        # This is what we expect for CTEST3, CTEST4
+        expected_vals_CTEST3 = {
+        'activity_warning_vars':{
+            'activity_warnings_content':"Let's get more active!",
+            'activity_warnings_downtime':"",
+            'activity_warnings_enabled':False,
+            'activity_warnings_threshold':5
+        },
+        'mood_messages_vars':{
+            'mood_message_content':"lol",
+            'mood_messages_downtime':"",
+            'mood_messages_enabled':True
+        }}
+        expected_vals_CTEST4 = {
+        'activity_warning_vars':{
+            'activity_warnings_content':"Let's get more active!",
+            'activity_warnings_downtime':"",
+            'activity_warnings_enabled':False,
+            'activity_warnings_threshold':5
+        },
+        'mood_messages_vars':{
+            'mood_message_content':"Let's be more positive!",
+            'mood_messages_downtime':"3d",
+            'mood_messages_enabled':False
+        }}
+        self.assertEqual(expected_vals_CTEST3, channelref3.get())
+        self.assertEqual(expected_vals_CTEST4, channelref4.get())
+        # Cleanup
+        ref.child('CTEST3').delete()
+        ref.child('CTEST4').delete()
     
 if __name__ == '__main__':
     unittest.main()
