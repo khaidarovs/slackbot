@@ -50,7 +50,11 @@ def summarize_conversation(self):
         msgs = payload.get('dummy_messages')
         n_msgs = len(msgs)
         msg_sent = False
-        if msgs > 0:
+        if n_msgs > 0:
             msg_sent = True
         return n_msgs, msg_sent
     
+
+# Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
+if __name__ == "__main__":
+    bot_app.run(debug=True)
