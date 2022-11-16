@@ -1,3 +1,7 @@
+# Overview
+For Iter2 Submission A, Please see iter2-activity-mood-convo branch for instructions
+on running tests. This branch should NOT be used in grading for this submission. :)
+
 # Testing
 
 In order to run the tests:
