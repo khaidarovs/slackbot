@@ -1,3 +1,9 @@
+# Overview
+This branch represents the test suite for Iteration 2 submission A, encompassing
+activity warnings, mood messages, and conversation summary (new feature). These
+3 features have unittests on separate branches, but this branch merged all these
+3 branches to make them easier to run :)
+
 # Testing
 
 In order to run the tests:
@@ -7,11 +13,11 @@ In order to run the tests:
 3. Run `pip install -r requirements.txt` to install the necessary requirements
 4. Run the tests using the commands below:
 
-`python -m unittest test/test_convo_summary.py`
+`python -m unittest test/test_mood_messages.py test/test_convo_summary.py test/test_activity_warnings.py`
 
 or 
 
-`python3 -m unittest test/test_convo_summary.py`
+`python3 -m unittest test/test_mood_messages.py test/test_convo_summary.py test/test_activity_warnings.py`
 
 Each feature is described in more detail below
 
