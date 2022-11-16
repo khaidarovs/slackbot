@@ -465,7 +465,7 @@ class TestCheckingDate(unittest.TestCase):
     def setUp(self):
         self.end_date = str(date.today())
 
-    def create_date_after(end_date):
+    def create_date_after(self, end_date):
         date_after = list(end_date)
         day = int(end_date[-2]) * 10 + int(end_date[-1])
         day_after = str(day + 1)
@@ -473,7 +473,7 @@ class TestCheckingDate(unittest.TestCase):
         date_after[-1] = day_after[1]
         return "".join(date_after)
 
-    def create_date_before(end_date):
+    def create_date_before(self, end_date):
         date_before = list(end_date)
         day = int(end_date[-2]) * 10 + int(end_date[-1])
         day_before = str(day - 1)
