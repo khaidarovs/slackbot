@@ -79,15 +79,15 @@ Functionality:
 
 3. Integrate with slash command
 -We will have to integrate our code with what the slash command group have written so that when a user inputs a slash command to add/join a class, our functions will be called. 
+
+In this upcoming iteration, we plan on revising our previous tests to ensure they can run under any conditions, and collecting data needed to archive a class channel once the class ends.
+
 ### Onboarding Test Changes (4.A)
-`test_normalize_channel_name()`:
--We added tests to check wether or not this function correctly normalizes a given test name as input. We assume that the slash command input handling team will assure that the format of four alphabetical letters followed by a dash followed by 5 numbers will be followed. Thus, our normalization will check that lowercasing is performed.
-
-`test_get_channel_info()`:
--We added tests for `get_channel_name()` and `get_channel_id()` here. We use the existing channel #general and #random that exists in all workspaces to check the case for a pre-existing channel and whether the correct name and id is retrieved. We then test whether a non-existing channel will return None or not. 
-
-`test_send_im_message()`:
--We added tests for `send_im_message()` and used test user id and along with a non-existing user id which should respectively return that the message was sent successfully and unsucessfully. 
+We added additional tests for helpers that we implemented in the previous iteration, including:
+- `normalize_channel_name(string channel_name)`, which ensures that class channels have all lowercase class codes
+- `get_channel_name(string channel_id)`, which returns the name of a channel given its id
+- `get_channel_id(string name_normalized)`, which returns the id of a channel given its name
+- `send_im_message(string userid, string test)`, which sends a direct message to a specific user
 
 # Activity Warning Branch - Matt and Maya G
 ### Running the tests
