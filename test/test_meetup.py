@@ -1,7 +1,8 @@
 import unittest
 import time
 from bot_meetup import *
-#from firebase import Firebase
+import firebase_admin
+from firebase_admin import credentials,db
 
 # this first set of unit tests makes sure that the formatting of the time and calculating the value in seconds
 # works correctly. "s" after a numerical value represents seconds, "d" represents days, and "h" represents hours, and "m" represents.
@@ -13,6 +14,12 @@ from bot_meetup import *
 # added, then that should also be written in the message. Finally, we want to be able to implement firebase in this implementation, so there will be
 # unit tests that will test that the database is being updated properly. Those tests will look almost the same, but this time it is going to be testing
 # whether firebase is working correctly.
+
+#implement the database
+cred = credentials.Certificate(os.environ['SERVICE_KEY'])
+firebase_admin.initialize_app(cred, "name")
+reminder = db.reference('meetup/')
+timestamps = reminder.child('timestamp')
 
 class TestMeetupMessage(unittest.TestCase):
     def test_something(self):
