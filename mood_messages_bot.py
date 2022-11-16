@@ -1,12 +1,5 @@
-from dotenv import load_dotenv
-import json
-import os
-from slack import WebClient
-from flask import Flask, request, Response
-from slackeventsapi import SlackEventAdapter
-import firebase_admin
-from firebase_admin import credentials, db
-import time
+# Import utils
+from iter2_activity_mood_convo_utils import *
 
 # firebase_db_init
 
