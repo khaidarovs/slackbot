@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from activity_warnings_bot import *
+from iter2_activity_mood_convo_bot import *
 import requests
 
 # Filename: test_activity_warnings.py
