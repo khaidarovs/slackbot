@@ -65,20 +65,29 @@ Functionality:
 - `welcome_new_user(payload)`: Instructs the user on how to join a class when they first join the workspace. Returns a Slack API generated success message on success, and False otherwise.
 - `handle_onboarding(class_name, user_id)`: Adds the given student to the given class channel, creating the channel if it doesn't already exist. Returns an object with the channel information on success, and a Slack API generated error otherwise.
 - `check_channels(class_name)`: Verifies whether a class channel exists within the workspace, returning True if it does and False otherwise.
+- `normalize_channel_name(channel_name)`: Converts the name of a class channel (in the format XXXX-#####) to the proper slack format (includes only lowercase letters, numbers, and a hyphen)
+- `get_channel_name(channel_id)`: Returns the name of the channel with the given channel ID, or none if the channel doesn't exist.
+- `get_channel_id(name_normalized)`: Returns the ID of the channel with the given name.
+- `send_im_message(userid, text)`: Sends a direct message to the user with the given user id.
 
-We were able to run all the tests for our functions with no issue initially. but we later realized that our tests were contingent on having an active user in the space. In the next iteration, we will find a workaround for this issue.
+### Onboarding Iteration 2 Plan (4.a)
+1. Fix `test_handle_onboarding()`
+-We discovered that these tests require a user to be active in the workspace and we plan to find a workaround for this so that the tests for `handle_onboarding()` can run without the active user requirement. We will be creating fake users and passing those users to our tests that don't interact with the API. 
 
-### Onboarding Test Changes (3.B)
-We realized that the tests utilize events operating in the workspace we created; thus, we had to revamp them a bit to get them to work properly.
+2. Ask for class end date
+-We plan to implement part of another feature which will ask for the user to input a class's end date. This will allow the bot to archive and/or delete the channel when the class is over. 
 
-`test_welcome_new_user()`:
-- We realized that the previous tests for `welcome_new_user()` wouldn't have worked, so we created a helper function to simulate different payloads, and used this to simulate a user joining a non-general and general channel.
+3. Integrate with slash command
+-We will have to integrate our code with what the slash command group have written so that when a user inputs a slash command to add/join a class, our functions will be called. 
+### Onboarding Test Changes (4.A)
+`test_normalize_channel_name()`:
+-We added tests to check wether or not this function correctly normalizes a given test name as input. We assume that the slash command input handling team will assure that the format of four alphabetical letters followed by a dash followed by 5 numbers will be followed. Thus, our normalization will check that lowercasing is performed.
 
-`test_handle_onboarding()`:
-- Instead of trying to fake a payload for the new and existing channels, we use the Slack API to create channels in the workspace, verify if a channel does/doesn't exist, and test whether or not a user is properly added to a channel. We also make use of the Slack API to remove users from channels prior to running the tests, to avoid unpredictable behavior.
+`test_get_channel_info()`:
+-We added tests for `get_channel_name()` and `get_channel_id()` here. We use the existing channel #general and #random that exists in all workspaces to check the case for a pre-existing channel and whether the correct name and id is retrieved. We then test whether a non-existing channel will return None or not. 
 
-`test_check_channel()`:
-- We moved the code for creating the existing channel into the setUp() function, since multiple test make use of that class.
+`test_send_im_message()`:
+-We added tests for `send_im_message()` and used test user id and along with a non-existing user id which should respectively return that the message was sent successfully and unsucessfully. 
 
 # Activity Warning Branch - Matt and Maya G
 ### Running the tests
