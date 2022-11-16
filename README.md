@@ -15,6 +15,26 @@ or
 
 Each feature is described in more detail below
 
+## Milestone 4A
+
+In order to run the tests, please checkout the following branches:
+- iter2-activity-mood-convo (Matthew and Maya G)
+- meetup_time_schedule_iter2 (Jason and Maya H)
+- handle_commands_iter2 (Michael and Sanzhar)
+- onboarding_i2 (Sabine and Grace)
+and follow the instructions above in order to run the tests.
+
+In order to enter each branch run the following commands:
+```
+1. git clone https://github.com/khaidarovs/slackbot.git (HTTPS)
+or
+1. git clone git@github.com:khaidarovs/slackbot.git (SSH)
+2. cd slackbot
+3. git branch -r (to see the different branches)
+4. git fetch origin
+5. git switch -c <branch name> origin/<branch name>
+6. Follow the steps above to run the tests (the json file will be attached to the email)
+
 # Handling Events and Slash Commands Feature - Sanzhar and Michael
 
 Compared to the iteration 1 design document, we largely followed the functions outlined in the handling slash command and events feature. We fleshed out the handle_slash_command function more, by having the function branch off into intermediate handling functions, for slash commands that require parameters. The idea is handle_slash_command is the first function called whenever a slash command is invoked. From there is directly handles calling the slash command implementation functions written in the other features, for slash commands that do not have parameters. We also thought that handle_slash_command should also handle defective payload information, since we are relying on Slack to provide us non-malformed data in their POST requests.
