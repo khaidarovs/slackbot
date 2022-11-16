@@ -275,6 +275,23 @@ def handle_disable_mood_messages_invocation(payload):
     #    mood_messages_bot.disable_mood_messages(payload) 
     return Response(status=200)
 
+def check_date(end_date):
+    #check if today's date is equal to the end_date
+    #if it is, return 0, if not return -1, if we're 1 day after the end_date, return 1
+    return 0
+
+def archive_channel(): #will be implemented with asyncio, being called periodically (every ~24h)
+    end_date = "1/1/1" #date will be pulled from firebase
+    if check_date(end_date) == 0:
+        #send a poll to the channel asking whether members want to delete the group
+        pass
+    elif check_date(end_date) == 1:
+        #look at the results of the poll
+        #if the majority are for, archive the channel
+        #otherwise do nothing, keep the channel
+        pass
+    
+
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True)

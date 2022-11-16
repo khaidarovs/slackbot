@@ -2,6 +2,7 @@ import unittest
 import bot_events_commands
 from flask import Response
 from bot_events_commands import bot_app, test_token, team_id
+from datetime import date
 
 bot_app.testing = True
 
@@ -459,6 +460,35 @@ class TestHandlingWorkspace(unittest.TestCase):
         self.assertTrue(same_responses(actual_response, self.invalid_payload_response))
         actual_response = self.mock_handle_workspace_channels(not_bot_id_channel_rv, {'ok': True}, {'ok': False})
         self.assertTrue(same_responses(actual_response, self.invalid_payload_response))
+
+class TestCheckingDate(unittest.TestCase):
+    def setUp(self):
+        self.end_date = str(date.today())
+
+    def create_date_after(end_date):
+        date_after = list(end_date)
+        day = int(end_date[-2]) * 10 + int(end_date[-1])
+        day_after = str(day + 1)
+        date_after[-2] = day_after[0]
+        date_after[-1] = day_after[1]
+        return "".join(date_after)
+
+    def create_date_before(end_date):
+        date_before = list(end_date)
+        day = int(end_date[-2]) * 10 + int(end_date[-1])
+        day_before = str(day - 1)
+        date_before[-2] = day_before[0]
+        date_before[-1] = day_before[1]
+        return "".join(date_before)
+
+    def testCheckingDate(self):
+        print("TESTING CHECKING DATE\n")
+        after = self.create_date_after(self.end_date)
+        before = self.create_date_before(self.end_date)
+        self.assertEqual(bot_events_commands.check_date(self.end_date), 0)
+        self.assertEqual(bot_events_commands.check_date(after), 1)
+        self.assertEqual(bot_events_commands.check_date(before), -1)
+
 
 if __name__ == '__main__':
     unittest.main()
