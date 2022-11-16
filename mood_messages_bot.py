@@ -1,17 +1,24 @@
 from dotenv import load_dotenv
+import json
 import os
 from slack import WebClient
 from flask import Flask, request, Response
 from slackeventsapi import SlackEventAdapter
 import firebase_admin
 from firebase_admin import credentials, db
+import time
 
 from nltk import download
+import matplotlib.pyplot as plt
 from nltk.sentiment import SentimentIntensityAnalyzer
 
 load_dotenv()
 
-ref = db.reference('mood_messages_vars/')
+cred = credentials.Certificate(os.environ['SVC_ACCT_KEY'])
+firebase_admin.initialize_app(cred, {
+    'databaseURL': os.environ['DBURL']
+})
+ref = db.reference('slackbot/')
 
 # Load the tokens from the ".env" file, which are set up as environment variables. 
 # You'll need the signing secret and bot token from the Slack developer console 
@@ -47,17 +54,40 @@ web_client = WebClient(token=BOT_TOKEN)
 
 # Variables for the bot
 
-# Mood Messages Variables
-mood_messages_enabled = ref.child('mood_messages_enabled')
-mood_messages_downtime = ref.child('mood_messages_downtime') # empty str if indefinite
-mood_message_content = ref.child('mood_message_content')
+# firebase_db_init
+
+# Initializes firebase database references for a given channel id. If this is 
+# called and the firebase database references already exist, the function
+# does nothing
+# INPUT
+# - channel id
+# OUTPUT
+# - db references initialized to default values 
+# - returns reference to channel in firebase db
+def firebase_db_init(channel_id):
+    channelref = ref.child(channel_id)
+    if channelref.get() != None:
+        # already exists in db
+        return channelref
+    # doesnt exist. So we init the vars
+    channelref.set({
+        'activity_warning_vars':{
+            'activity_warnings_content':"Let's get more active!",
+            'activity_warnings_downtime':"",
+            'activity_warnings_enabled':False,
+            'activity_warnings_threshold':5
+        },
+        'mood_messages_vars':{
+            'mood_message_content':"Let's be more positive!",
+            'mood_messages_downtime':"",
+            'mood_messages_enabled':False
+        }
+    })
+    return channelref
 
 # Functions we'd implement would be here.
 
-def enable_mood_messages(self):
-    # Get data
-    payload = self.payload
-
+def enable_mood_messages(payload):
     # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
@@ -65,6 +95,11 @@ def enable_mood_messages(self):
     # Extract data from payload
     user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
+
+    # Let's make sure that the Firebase DB has been initialized
+    # Also, let's get the channel reference
+    channelref = firebase_db_init(channel_id)
+    mood_messages_vars_ref = channelref.child('mood_messages_vars')
 
     # Parse message to send
     fallback_msg = "Enabled mood messages. "
@@ -85,14 +120,12 @@ def enable_mood_messages(self):
     }
     if not is_test: # From Slack, not from Tests
         retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
-    ref.update({
+    mood_messages_vars_ref.update({
         'mood_messages_enabled':True
     })
     return cmd_output
 
-def disable_mood_messages(self):
-    # Get data
-    payload = self.payload
+def disable_mood_messages(payload):
 
     # First check if this is a test or not
     is_test = False
@@ -102,12 +135,17 @@ def disable_mood_messages(self):
     user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
 
+    # Let's make sure that the Firebase DB has been initialized
+    # Also, let's get the channel reference
+    channelref = firebase_db_init(channel_id)
+    mood_messages_vars_ref = channelref.child('mood_messages_vars')
+
     # Parse message to send
     user_given_text = payload["text"]
     if user_given_text == "":
         # Payload is empty, disable indefinitely
         downtime_response = "Mood messages disabled indefinitely."
-        ref.update({
+        mood_messages_vars_ref.update({
         'mood_messages_downtime':""
         })
     else:
@@ -115,11 +153,10 @@ def disable_mood_messages(self):
         finalchar = user_given_text[-1]
         if finalchar != -1:
             downtime_response = "Mood messages disabled for " + payload["text"] + "."
-        ref.update({
-        'mood_messages_downtime':payload["text"]
+        mood_messages_vars_ref.update({
+        'mood_messages_downtime' : payload["text"]
         })
-    ref.update({
-    'mood_messages_enabled':False
+    mood_messages_vars_ref.update({ 'mood_messages_enabled':False
     })
     fallback_msg = "Disabled mood messages. " + downtime_response
     cmd_output ={"blocks": [{
@@ -144,10 +181,7 @@ def disable_mood_messages(self):
         retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
     return cmd_output
 
-def set_mood_messages_content(self):
-    # Get data
-    payload = self.payload
-
+def set_mood_messages_content(payload):
     # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
@@ -156,18 +190,24 @@ def set_mood_messages_content(self):
     user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
 
+    # Let's make sure that the Firebase DB has been initialized
+    # Also, let's get the channel reference
+    channelref = firebase_db_init(channel_id)
+    mood_messages_vars_ref = channelref.child('mood_messages_vars')
+
     # Parse message to send
     if payload["text"] == "":
         # Set to default
-        ref.update({
+        mood_messages_vars_ref.update({
         'mood_message_content':"Let's be more positive!"
         })
     else:
         # Set to that indicated by user
-        ref.update({
+        mood_messages_vars_ref.update({
         'mood_message_content':payload["text"]
         })
-    fallback_msg = "Set mood messages content to:\n" + mood_message_content.get()
+    mood_message_content = channelref.child('mood_messages_vars').child('mood_message_content').get()
+    fallback_msg = "Set mood messages content to:\n" + mood_message_content
     cmd_output ={"blocks": [{
         "type": "section",
         "text": {
@@ -177,7 +217,7 @@ def set_mood_messages_content(self):
         "type": "section",
         "text": {
             "type": "mrkdwn",
-            "text": mood_message_content.get()
+            "text": mood_message_content
                 }}]}
     # Send msg to user
     msg_construct = {
@@ -191,11 +231,8 @@ def set_mood_messages_content(self):
         retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
     return cmd_output
 
-#This function only sends a message if the check_mood function returns -1, i.e, if the mood is negative
-def send_mood_message(self):
-    # Get data
-    payload = self.payload
-
+#This function sends a message if the mood is negative (-1)
+def send_mood_message(payload):
     # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
@@ -203,7 +240,11 @@ def send_mood_message(self):
     # Extract data from payload
     user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
-
+    # Let's make sure that the Firebase DB has been initialized
+    # Also, let's get the channel reference
+    channelref = firebase_db_init(channel_id)
+    mood_messages_vars_ref = channelref.child('mood_messages_vars')
+    mood_message_content = mood_messages_vars_ref.child('mood_message_content').get()
     cmd_output ={"blocks": [{
     "type": "section",
     "text": {
@@ -213,9 +254,9 @@ def send_mood_message(self):
     "type": "section",
     "text": {
         "type": "mrkdwn",
-        "text": mood_message_content.get()
+        "text": mood_message_content
     }}]}
-    fallback_msg = mood_message_content.get()
+    fallback_msg = mood_message_content
     msg_construct = {
     "token":BOT_TOKEN,
     "channel":channel_id,
@@ -227,16 +268,16 @@ def send_mood_message(self):
 
     return cmd_output
 
-#the handle_message_event function calls this function, so this function takes in a dictionary as its input. 
-#the dictionary is of the following :
+#Takes in a dictionary representing information from a single message, and determines the
+#mood of that message: positive, negative, or neutral, represented by 1, -1, 0 respectively
+#The dictionary is of the following type:
 #{
     #"token": "z26uFbvR1xHJEdHE1OQiO6t8",
     #"channel": "C2147483705",
     #"user": "U2147483697",
     #"text": "Hello world",
 #}
-
-def check_mood(self, dict_message):
+def check_mood(payload, dict_message):
     # The SentimentIntensityAnalyzer model needs us to pull down the vader_lexicon
     download('vader_lexicon')
     sia = SentimentIntensityAnalyzer()
@@ -249,7 +290,40 @@ def check_mood(self, dict_message):
         return -1
     else:
         return 0
-        
+
+#the handle_message_event function calls this function, so this function takes in a dictionary as its input. 
+#the dictionary is of the following type:
+#{
+    #"token": "z26uFbvR1xHJEdHE1OQiO6t8",
+    #"channel": "C2147483705",
+    #"user": "U2147483697",
+    #"text": "Hello world",
+#}
+def check_send_mood_message(payload, dict_message):
+# TODO: This function is not yet implemented. It only has test features in it
+
+    # First check if this is a test or not
+    is_test = False
+    if payload.get('token') == "test_token_1":
+        is_test = True
+    # Extract data from payload
+    user_id = payload.get('user_id')
+    channel_id = payload.get('channel_id')
+
+    # If it's test, then we have a dummy mood (positive, negative, or neutral) return from check_mood 
+    mood = check_mood(payload, dict_message)
+    
+    # Let's make sure that the Firebase DB has been initialized
+    # Also, let's get the channel reference
+    channelref = firebase_db_init(channel_id)
+    mood_messages_vars_ref = channelref.child('mood_messages_vars')
+    send_msg = mood == -1
+    if (send_msg):
+        # We're below the threshold, lets send msg
+        send_mood_message(payload)
+    return send_msg # True if msg sent, False if not
+
+
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True)
