@@ -15,7 +15,6 @@ or
 
 Each feature is described in more detail below
 
-<<<<<<< HEAD
 # ITER2 - Activity Warnings
 The goal of this iteration is to complete the activity warnings feature. 
 This encompasses the following<br>
@@ -31,7 +30,6 @@ Conversation summary is a new feature that is a response to a slash command
 hrs. Because the conversation summary will differ each time due to NLP, our two
 test cases check if there are 0 msgs in the past N hrs, or if there are >0 msgs,
 and test the correct behavior for each case
-=======
 # ITER2 - Mood Messages
 The goal of this iteration is to complete the mood messages feature. 
 This encompasses the following<br>
@@ -42,4 +40,3 @@ Unit tests for all three of these features have been added. However, there are
 some practical issues with testing scheduling that make it difficult to test (i.e.
 making sure the functions are called at the right times). Thus, we are just 
 testing the functionality of the functions called by the scheduler. <br>
->>>>>>> mood_messages_iter2

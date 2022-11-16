@@ -1,7 +1,5 @@
-import unittest
-from unittest.mock import patch
-from bot import *
-import requests
+# Import utils
+from iter2_activity_mood_convo_utils import *
 
 # Filename: test_mood_messages.py
 # 

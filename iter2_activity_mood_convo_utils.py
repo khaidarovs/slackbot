@@ -10,6 +10,9 @@ from slackeventsapi import SlackEventAdapter
 import firebase_admin
 from firebase_admin import credentials, db
 import time
+from nltk import download
+import matplotlib.pyplot as plt
+from nltk.sentiment import SentimentIntensityAnalyzer
 
 load_dotenv()
 
