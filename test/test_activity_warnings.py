@@ -64,7 +64,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             ]
         }
         # This is where we call the function
-        cmd_output = enable_activity_warnings(self)
+        cmd_output = enable_activity_warnings(self.payload)
         # Now check our values
         self.assertEqual(cmd_output, expected_cmd_output)
         self.assertTrue(activity_warnings_enabled.get()) 
@@ -117,7 +117,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             ]
         }
         # This is where we call the function
-        cmd_output = disable_activity_warnings(self)
+        cmd_output = disable_activity_warnings(self.payload)
         # Now check our values
         self.assertEqual(cmd_output, expected_cmd_output)
         # uncomment when implementing
@@ -170,7 +170,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             ]
         }
         # This is where we call the function
-        cmd_output = disable_activity_warnings(self)
+        cmd_output = disable_activity_warnings(self.payload)
         # Now check our values
         self.assertEqual(cmd_output, expected_cmd_output)
         self.assertEqual("3d", activity_warnings_downtime.get())
@@ -219,7 +219,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             ]
         }
         # This is where we call the function
-        cmd_output = set_activity_warnings_content(self)
+        cmd_output = set_activity_warnings_content(self.payload)
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
         self.assertEqual(activity_warnings_content.get(), "Let's get more active!")
@@ -261,7 +261,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             ]
         }
         # This is where we call the function
-        cmd_output = set_activity_warnings_threshold(self)
+        cmd_output = set_activity_warnings_threshold(self.payload)
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
         self.assertEqual(10, activity_warnings_threshold.get()) 
@@ -310,7 +310,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             ]
         }
         # This is where we call the function
-        cmd_output = set_activity_warnings_content(self)
+        cmd_output = set_activity_warnings_content(self.payload)
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
         # uncomment when implementing
@@ -328,7 +328,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         expected_cmd_output = 10
         
         # This is where we call the function
-        cmd_output = check_activity(self)
+        cmd_output = check_activity(self.payload)
 
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
@@ -356,7 +356,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             "text": activity_warnings_content.get()
         }}]}
         # This is where we call the function
-        cmd_output = send_activity_warning(self)
+        cmd_output = send_activity_warning(self.payload)
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
     
@@ -445,7 +445,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             "api_app_id":"A123456"
         }
         self.payload = slash_cmd
-        enable_activity_warnings(self)
+        enable_activity_warnings(self.payload)
         slash_cmd = {
             "token":"test_token_1",
             "team_id":"T0001",
@@ -461,7 +461,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             "api_app_id":"A123456"
         }
         self.payload = slash_cmd
-        disable_activity_warnings(self)
+        disable_activity_warnings(self.payload)
         # Next, activity_warnings_threshold
         slash_cmd = {
             "token":"test_token_1",
@@ -478,7 +478,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             "api_app_id":"A123456"
         }
         self.payload = slash_cmd
-        set_activity_warnings_threshold(self)
+        set_activity_warnings_threshold(self.payload)
         # Finally, activity_warnings_content
         slash_cmd = {
             "token":"test_token_1",
@@ -495,7 +495,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             "api_app_id":"A123456"
         }
         self.payload = slash_cmd
-        set_activity_warnings_content(self)
+        set_activity_warnings_content(self.payload)
         # This is what we expect for CTEST3, CTEST4
         expected_vals_CTEST3 = {
         'activity_warning_vars':{
@@ -548,7 +548,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             "api_app_id":"A123456"
         }
         self.payload = slash_cmd
-        set_activity_warnings_threshold(self)
+        set_activity_warnings_threshold(self.payload)
         # Now we can proceed
         input = {
         "token":"test_token_1",
@@ -557,7 +557,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         }
         self.payload = input
 
-        cmd_output = check_send_activity_warning(self)
+        cmd_output = check_send_activity_warning(self.payload)
         self.assertFalse(cmd_output)
         
 
@@ -583,7 +583,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             "api_app_id":"A123456"
         }
         self.payload = slash_cmd
-        set_activity_warnings_threshold(self)
+        set_activity_warnings_threshold(self.payload)
         # Now we can proceed
         input = {
         "token":"test_token_1",
@@ -592,7 +592,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         }
         self.payload = input
 
-        cmd_output = check_send_activity_warning(self)
+        cmd_output = check_send_activity_warning(self.payload)
         self.assertTrue(cmd_output)
 
 if __name__ == '__main__':

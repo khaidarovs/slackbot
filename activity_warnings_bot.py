@@ -80,10 +80,7 @@ def firebase_db_init(channel_id):
 # - Sends an ephemeral message back to the user indicating necessary information
 # - Enables activity warnings in the channel
 
-def enable_activity_warnings(self):
-    # Get data
-    payload = self.payload
-
+def enable_activity_warnings(payload):
     # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
@@ -133,9 +130,7 @@ def enable_activity_warnings(self):
     })
     return cmd_output
 
-def disable_activity_warnings(self):
-    # Get data
-    payload = self.payload
+def disable_activity_warnings(payload):
 
     # First check if this is a test or not
     is_test = False
@@ -192,10 +187,7 @@ def disable_activity_warnings(self):
         retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
     return cmd_output
 
-def set_activity_warnings_threshold(self):
-    # Get data
-    payload = self.payload
-
+def set_activity_warnings_threshold(payload):
     # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
@@ -234,10 +226,7 @@ def set_activity_warnings_threshold(self):
     })
     return cmd_output
 
-def set_activity_warnings_content(self):
-    # Get dataa
-    payload = self.payload
-
+def set_activity_warnings_content(payload):
     # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
@@ -288,10 +277,7 @@ def set_activity_warnings_content(self):
         retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
     return cmd_output
 
-def check_activity(self):
-    # Get dataa
-    payload = self.payload
-
+def check_activity(payload):
     # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
@@ -314,10 +300,7 @@ def check_activity(self):
     
     return len(conversation_history)
 
-def send_activity_warning(self):
-    # Get dataa
-    payload = self.payload
-
+def send_activity_warning(payload):
     # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
@@ -354,11 +337,8 @@ def send_activity_warning(self):
         retval = web_client.chat_postMessage(**msg_construct)
     return cmd_output
         
-def check_send_activity_warning(self):
+def check_send_activity_warning(payload):
 # TODO: This function is not yet implemented. It only has test features in it
-    # Get dataa
-    payload = self.payload
-
     # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
@@ -368,7 +348,7 @@ def check_send_activity_warning(self):
     channel_id = payload.get('channel_id')
 
     # If it's test, then we have a dummy messages return from check_activity
-    n_msgs = check_activity(self)
+    n_msgs = check_activity(payload)
     
     # Let's make sure that the Firebase DB has been initialized
     # Also, let's get the channel reference
@@ -378,7 +358,7 @@ def check_send_activity_warning(self):
     send_msg = activity_warnings_threshold_ref.get() >= n_msgs
     if (send_msg):
         # We're below the threshold, lets send msg
-        send_activity_warning(self)
+        send_activity_warning(payload)
     return send_msg # True if msg sent, False if not
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
