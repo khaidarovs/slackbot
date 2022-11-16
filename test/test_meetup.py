@@ -19,7 +19,7 @@ from firebase_admin import credentials,db
 cred = credentials.Certificate(os.environ['SERVICE_KEY'])
 firebase_admin.initialize_app(cred, "name")
 reminder = db.reference('meetup/')
-timestamps = reminder.child('timestamp')
+timestamps = reminder.child('timestamps')
 
 class TestMeetupMessage(unittest.TestCase):
     def test_something(self):
