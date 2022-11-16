@@ -1,7 +1,6 @@
-
 import unittest
 from unittest.mock import patch
-from mood_messages_bot import *
+from bot import *
 import requests
 
 # Filename: test_mood_messages.py
@@ -34,6 +33,9 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             "api_app_id":"A123456"
         }
         self.payload = slash_cmd
+        # Get channel ref in firebase db
+        channelref = ref.child("CTEST1")
+        mood_messages_enabled = channelref.child('mood_message_vars').child('mood_messages_enabled')
         # Now we indicate our expected output
         # Note: this is an ephemeral message. This message will only be visible
         # To the user who called the command
@@ -49,7 +51,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
         ]
         }
         #This is where we call the function
-        cmd_output = enable_mood_messages(self)
+        cmd_output = enable_mood_messages(self.payload)
         # Now check our values
         self.assertEqual(cmd_output, expected_cmd_output)
         self.assertTrue(mood_messages_enabled.get()) 
@@ -74,7 +76,10 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             "api_app_id":"A123456"
         }
         self.payload = slash_cmd
-        payload = self.payload
+        # Get channel ref
+        channelref = ref.child("CTEST1")
+        mood_messages_enabled = channelref.child('mood_messages_vars').child('mood_messages_enabled')
+        mood_messages_downtime = channelref.child('mood_messages_vars').child('mood_messages_downtime')
         # Now we indicate our expected output
         # Note: this is an ephemeral message. This message will only be visible
         # To the user who called the command
@@ -98,7 +103,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             ]
         }
         # This is where we call the function
-        cmd_output = disable_mood_messages(self)
+        cmd_output = disable_mood_messages(self.payload)
         # Now check our values
         self.assertEqual(cmd_output, expected_cmd_output)
         # uncomment when implementing
@@ -125,6 +130,9 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
         }
         self.payload = slash_cmd
         payload = self.payload
+        # Get channel ref
+        channelref = ref.child("CTEST1")
+        mood_messages_downtime = channelref.child('mood_messages_vars').child('mood_messages_downtime')
         # Now we indicate our expected output
         # Note: this is an ephemeral message. This message will only be visible
         # To the user who called the command
@@ -148,7 +156,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             ]
         }
         # This is where we call the function
-        cmd_output = disable_mood_messages(self)
+        cmd_output = disable_mood_messages(self.payload)
         # Now check our values
         self.assertEqual(cmd_output, expected_cmd_output)
         self.assertEqual("3d", mood_messages_downtime.get())
@@ -172,6 +180,11 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             "api_app_id":"A123456"
         }
         self.payload = slash_cmd
+
+        # Get channel ref
+        channelref = ref.child("CTEST1")
+        mood_message_content = channelref.child('mood_messages_vars').child('mood_message_content')
+
         # Now we indicate our expected output
         # Note: this is an ephemeral message. This message will only be visible
         # To the user who called the command
@@ -194,7 +207,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             ]
         }
         # This is where we call the function
-        cmd_output = set_mood_messages_content(self)
+        cmd_output = set_mood_messages_content(self.payload)
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
         self.assertEqual(mood_message_content.get(), "Let's be more positive!")
@@ -219,6 +232,11 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             "api_app_id":"A123456"
         }
         self.payload = slash_cmd
+
+        # Get channel ref
+        channelref = ref.child("CTEST1")
+        mood_message_content = channelref.child('mood_messages_vars').child('mood_messages_content')
+
         # Now we indicate our expected output
         # Note: this is an ephemeral message. This message will only be visible
         # To the user who called the command
@@ -241,7 +259,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             ]
         }
         # This is where we call the function
-        cmd_output = set_mood_messages_content(self)
+        cmd_output = set_mood_messages_content(self.payload)
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
         # uncomment when implementing
@@ -262,7 +280,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
         expected_cmd_output = -1
 
         # Call the function
-        cmd_output = check_mood(self, inp)
+        cmd_output = check_mood(self.payload, inp)
 
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
@@ -278,7 +296,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
         expected_cmd_output = 0
 
         #Call the function
-        cmd_output = check_mood(self, inp1)
+        cmd_output = check_mood(self.payload, inp1)
 
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
@@ -294,18 +312,25 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
         expected_cmd_output = 1
 
         #Call the function
-        cmd_output = check_mood(self, inp2)
+        cmd_output = check_mood(self.payload, inp2)
 
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
 
-    # This test case is for send_mood_warning, a function called by the 
+    # This test case is for send_mood_message, a function called by the 
     # script that sends a message to the channel encouraging users to chat
     def test_send_mood_message(self):
+        channelref = ref.child("CTEST1")
+        mood_message_content = channelref.child('mood_messages_vars').child('mood_message_content')
+        input = {
+            "token":"test_token_1",
+            "channel_id":"CTEST1"
+        }
         input = {
             "token":"test_token_1",
             "channel_id":"C2147483705"
         }
+
         self.payload = input
         # Set what we expect
         expected_cmd_output ={"blocks": [{
@@ -320,9 +345,56 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             "text": mood_message_content.get()
         }}]}
         # This is where we call the function
-        cmd_output = send_mood_message(self)
+        cmd_output = send_mood_message(self.payload)
         # Now check our values
         self.assertEqual(expected_cmd_output, cmd_output)
+
+    # This test case is for the the check_send_mood_message function which
+    # calls check_mood and send_mood_message, and this function is called
+    # on a schedule every 24hrs. This checks the case when no mood msg is sent
+    def test_check_send_mood_message_nosend(self):
+        #set mood to positive/neutral
+        inp1 = {
+        "token": "z26uFbvR1xHJEdHE1OQiO6t8",
+        "channel": "C2147483705",
+        "user": "U2147483697",
+        "text": "I am so positive!",
+        }
+        self.payload = inp1
+        # Now we can proceed
+        input = {
+        "token":"test_token_1",
+        "channel_id":"CTEST1",
+        "user_id":"Test_User_1"
+        }
+        self.payload = input
+
+        cmd_output = check_send_mood_message(self.payload, inp1)
+        self.assertFalse(cmd_output)
+        
+
+    # This test case is for the the check_send_activiy_warnings function which
+    # calls check_mood and send_mood_message, and this function is called
+    # on a schedule every 24hrs. This checks the case when the moods msg is sent
+    def test_check_send_mood_messages_dosend(self):
+        #set mood to negative
+        inp2 = {
+        "token": "z26uFbvR1xHJEdHE1OQiO6t8",
+        "channel": "C2147483705",
+        "user": "U2147483697",
+        "text": "I am sad, I feel bad.",
+        }
+        self.payload = inp2
+        # Now we can proceed
+        input = {
+        "token":"test_token_1",
+        "channel_id":"CTEST1",
+        "user_id":"Test_User_1"
+        }
+        self.payload = input
+
+        cmd_output = check_send_mood_message(self.payload, inp2)
+        self.assertTrue(cmd_output)
     
 if __name__ == '__main__':
     unittest.main()
