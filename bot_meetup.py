@@ -43,11 +43,16 @@ def parsing(self):
     result = [x for x in splits if x != '' and x != ' ']
     return result
 
-def calculation(self):
+def calculation(self,payload,location):
     # initialize accumulator
     i = 0
     # initialize result paramter
     res = 0
+    #initialize the different string varaiables
+        if location != None:
+                var1 = "meetup at " + str(location) + " in "
+        else:
+                var1 = "meetup in "
     # traverse through the array
     while i < len(self):
         if i + 1 < len(self):
@@ -55,15 +60,52 @@ def calculation(self):
             # is a possibliity that the next spot in the array is one of the s,m,h,d
             # characters, so check to see if it is any o those characters
             if self[i + 1] == 's':
+               var1 = var1 + self[i]
+                                if int(self[i]) == 1:
+                                        var1 = var1 + " second"
+                                else:
+                                        var1 = var1 + " seconds"
+                                if i + 2 == len(self):
+                                        var1 = var1 + "!"
+                                else:
+                                        var1 = var1 + " and "
                 res = res + int(self[i])
                 i = i + 2
             elif self[i + 1] == 'm':
+                 var1 = var1 + self[i]
+                                if int(self[i]) == 1:
+                                        var1 = var1 + " minute"
+                                else:
+                                        var1 = var1 + " minutes"
+                                print(i + 2)
+                                if i + 2 == len(self):
+                                        var1 = var1 + "!"
+                                else:
+                                        var1 = var1 + " and "
                 res = res + (int(self[i]) * 60)
                 i = i + 2
             elif self[i + 1] == 'h':
+                 var1 = var1 + self[i]
+                                if int(self[i]) == 1:
+                                        var1 = var1 + " hour"
+                                else:
+                                        var1 = var1 + " hours"
+                                if i + 2 == len(self):
+                                        var1 = var1 + "!"
+                                else:
+                                        var1 = var1 + " and "
                 res = res + (int(self[i]) * 3600)
                 i = i + 2
             elif self[i + 1] == 'd':
+                var1 = var1 + self[i]
+                                if int(self[i]) == 1:
+                                        var1 = var1 + " day"
+                                else:
+                                        var1 = var1 + " days"
+                                if i + 2 == len(self):
+                                        var1 = var1 + "!"
+                                else:
+                                        var1 = var1 + " and "
                 res = res + (int(self[i]) * 86400)
                 i = i + 2
             else:
@@ -74,10 +116,20 @@ def calculation(self):
                 tmp = self[i].split('[a-z]')
                 # since no s,m,h,d was specificied, default to calculating seconds
                 # per minute
+                var1 = var1 + tmp[0]
+                                if tmp[0] == 1:
+                                        var1 = var1 + " minute!"
+                                else:
+                                        var1 = var1 + " minutes!"
                 res = res + (int(tmp[0]) * 60)
                 i = i + 1
         else:
             tmp = re.split(r"([a-z])", self[i])
+            var1 = var1 + tmp[0]
+                        if tmp[0] == 1:
+                                var1 = var1 + " minute"
+                        else:
+                                var1 = var1 + " minutes!"
             res = res + (int(tmp[0]) * 60)
             i = i + 1
     return res
@@ -85,7 +137,10 @@ def calculation(self):
 @bot_app.route('/meetup', methods=['POST'])
 def meetup(*text):
     step1 = parsing(text[0])
-    ts = calculation(step1)
+    if len(text) == 3:
+        ts = calculation(step1,self[1],self[2])
+    else:
+        ts = calculation(step1,self[1],None)
     #Waiting on cross-implimentation between core and meetup
     #wait_message(ts + time.time(), desiredchannel, "reminder for meetup")
     return ts
