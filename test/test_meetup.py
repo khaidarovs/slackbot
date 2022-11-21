@@ -79,30 +79,26 @@ class TestMeetupMessage(unittest.TestCase):
             "text": "/meetup 5h",
             "ts": "0"
         } 
-        timestamps = {'ts':0}
-        # "timestamps" is a child of the firebase database that holds all of the timestamps that are entered into
+        # "timestamps" is a reference of the firebase database that holds all of the timestamps that are entered into
         # the database
         # this returns false because no times have been entered into the database yet.
-        self.assertFalse(in_five(timestamps.get('ts')))
+        self.assertFalse(in_five(self.payload))
         # sets the timestamp of the payload to a value that is over five minutes from the current time.
         self.payload["ts"] = time.time() + 1000
         # enteres the d time value, the channel ID, and the message into the database.
-        wait_message(self.payload["ts"], self.payload["channel"],
-                     "reminder for meetup")
+        wait_message(self.payload,"reminder for meetup")
         # since d is not within five minutes of the current time, there are no times within the database
         # that are within the current time, so return false.
-        self.assertFalse(in_five(timestamps.get('ts')))
+        self.assertFalse(in_five(self.payload))
         # sets t to a value that is within five seconds of the current time.
         self.payload["ts"] = time.time() + 5
         # this enters a time within five minutes of the current time into database.
-        wait_message(self.payload["ts"], self.payload["channel"],
-                     "reminder for meetup")
+        wait_message(self.payload,"reminder for meetup")
         # goes into database, retrieves time value stored at the payload timestamp, and sees if it is successful.
-        #self.assertEqual(timestamps.equal_to(self.payload["ts"]).get(), {
-        #            self.payload["channel"]: "reminder for meetup"})
+        self.assertEqual(timestamps.child(str(int(self.payload["ts"]))).get(), {self.payload["channel"]: "reminder for meetup"})
         # checks if there are any scheduled reminder messages in five minutes, returns true
         # because t is within five minutes of current time.
-        self.assertTrue(in_five(timestamps.get('ts')))
+        self.assertTrue(in_five(self.payload))
 
 
 if __name__ == '__main__':
