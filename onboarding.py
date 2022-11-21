@@ -17,6 +17,8 @@ slack_event_adapter = SlackEventAdapter(os.environ["SIGNING_SECRET"], "/slack/ev
 
 web_client = WebClient(token=os.environ["BOT_TOKEN"])
 
+TEST_USER_ID = 'T3sTID'
+
 # database to store any conversations information
 conversations_store = {}
 
@@ -112,18 +114,20 @@ def get_channel_name(channel_id):
         if id == channel_id:
             return name
 
+
 def get_channel_id(name_normalized):
     '''
         Returns the ID of the channel with the given name.
 
         Input: name_normalized(str): the channel to be searched for
 
-        Output: (str) the ID of the found channel 
+        Output: (str) the ID of the found channel
     '''
     channels = fetch_conversations()
     for id, name in channels:
         if name == name_normalized:
             return id
+
 
 def send_im_message(userid, text):
     '''
@@ -136,6 +140,23 @@ def send_im_message(userid, text):
         Output (object): Success response containing channel and message text, or 
                          SlackApiError on failure
     '''
+    #payload for testing
+    if userid == TEST_USER_ID:
+        rv = {
+            "ok": True,
+            "channel": "C123456",
+            "ts": "1503435956.000247",
+            "message": {
+                "text": text,
+                "username": userid,
+                "bot_id": "B123456",
+                "attachments": [],
+                "type": "message",
+                "subtype": "bot_message",
+                "ts": "1503435956.000247"
+            }
+        }
+        return rv
 
     try:
         rv = web_client.chat_postMessage(channel=userid, text=text)
@@ -155,6 +176,7 @@ def check_channel(channel):
     '''
     channels = fetch_conversations()
     normalized_channel = normalize_channel_name(channel)
+    print(channels)
 
     #access second element in channels (which is list of [id, channel_names]s)
     channel_names = [el[1] for el in channels]
@@ -191,13 +213,57 @@ def handle_onboarding(class_name, user_id):
         logger.error("Error finding channel_id: id not found")
         return "id for channel " + name_normalized + " not found"
 
-    rv = web_client.conversations_invite(channel=channel_id, users=user_id)
+    #payload for testing
+    if user_id == TEST_USER_ID:
+        rv = {
+            "ok": True,
+            "channel": {
+                "id": channel_id,
+                "name": get_channel_name(name_normalized),
+                "is_channel": True,
+                "is_group": False,
+                "is_im": False,
+                "created": 1449252889,
+                "creator": "W012A3BCD",
+                "is_archived": False,
+                "is_general": True,
+                "unlinked": 0,
+                "name_normalized": "general",
+                "is_read_only": False,
+                "is_shared": False,
+                "is_ext_shared": False,
+                "is_org_shared": False,
+                "pending_shared": [],
+                "is_pending_ext_shared": False,
+                "is_member": True,
+                "is_private": False,
+                "is_mpim": False,
+                "last_read": "1502126650.228446",
+                "topic": {
+                    "value": "For public discussion of generalities",
+                    "creator": "W012A3BCD",
+                    "last_set": 1449709364
+                },
+                "purpose": {
+                    "value": "This part of the workspace is for fun. Make fun here.",
+                    "creator": "W012A3BCD",
+                    "last_set": 1449709364
+                },
+                "previous_names": [
+                    "specifics",
+                    "abstractions",
+                    "etc"
+                ]
+            }
+        }
+    else:
+        rv = web_client.conversations_invite(channel=channel_id, users=user_id)
+    
     return rv
 
 # web_client.chat_postMessage(channel='#general', text='Hello World!')
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True, port=3000)
-
 
 
