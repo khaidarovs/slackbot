@@ -145,29 +145,22 @@ def meetup(*text):
     return ts
 
 # Sends a message later
-def wait_message(ts, channel, remindMessage):
-    db["reminder"][ts] = {}
-    db["reminder"][ts].update({channel: remindMessage})
-    return
+def wait_message(payload,meetremind):
+        data = {payload.get('channel') : meetremind}
+        res = timestamps.child(str(math.trunc(payload.get('ts'))))
+        res.set(data)
 
 # checks if a reminder is in the next five minutes
-def in_five(ts):
-    found = False
-    events = list(db["reminder"].keys())
-    # reads each time stamp
-    for event in events:
-        # is within five minutes
-        FIVE_MINUTES = 300
-        if (event - time.time() < FIVE_MINUTES):
-            found = True
-            # reads each channel of that time stamp
-            locations = list(db["reminder"][event].keys())
-            # iterates through channels for each time stamp
-            for location in locations:
-                delayedMessage(db["reminder"][event][location],
-                               location, event - time.time())
-            del db["reminder"][event]
-    return found
+def in_five(payload):
+        ts = int(payload.get('ts'))
+        res = timestamps.child(str(ts))
+        if res.get() == {payload.get('channel') : "reminder for meetup"}:
+                if ts <= time.time() + 300:
+                        return True
+                else:
+                        return False
+        else:
+                return False
 
 # sends a message after a delay
 async def delayedMessage(message, location, delay):
