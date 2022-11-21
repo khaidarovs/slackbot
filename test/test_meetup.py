@@ -35,39 +35,39 @@ class TestMeetupMessage(unittest.TestCase):
         # THE MESSAGE THAT IS GENERATED WITH THE MEETUP FUNCTION WAS CORRECTLY SENT TO THE 
         # CHANNEL
         # tests if seconds returns correct second value.
-        self.assertEqual(meetup("1s"), 1)
+        self.assertEqual(meetup("1s"self.payload), 1)
         #NEW: tests if message is correctly sent in the payload.
         self.assertEqual(self.payload["type"], "meetup in 1 second!")
         # tests if minutes returns correct second value.
-        self.assertEqual(meetup("60m"), 3600)
+        self.assertEqual(meetup("60m",self.payload), 3600)
         #NEW: tests if message is correct sent in the payload.
         self.assertEqual(self.payload["type"], "meetup in 60 minutes!")
         # tests if days returns correct second value.
-        self.assertEqual(meetup("1d"), 86400)
+        self.assertEqual(meetup("1d",self.payload), 86400)
         #NEW: tests if message is correctly sent in the payload.
         self.assertEqual(self.payload["type"], "meetup in 1 day!")
         # tests if multiple units days = d, second = s, minute = m, can return successfully.
-        self.assertEqual(meetup("1d30m"), 88200)
+        self.assertEqual(meetup("1d30m",self.payload), 88200)
         #NEW: tests if message is correctly sent in the payload.
         self.assertEqual(self.payload["type"], "meetup in 1 day and 30 minutes!")
         # tests whether extra space can return successfully. 
-        self.assertEqual(meetup("1d 30m"), 88200)
+        self.assertEqual(meetup("1d 30m",self.payload), 88200)
         # tests if multipe ordering of the different time units can return successfully.
-        self.assertEqual(meetup("30m1d"), 88200)
+        self.assertEqual(meetup("30m1d",self.payload), 88200)
         #NEW: the order of the message should be the order that the time(s) were written in the command.
         self.assertEqual(self.payload["type"], "meetup in 30 minutes and 1 day!")
         # tests if an unknown letter/unit is entered that return value defaults to number of seconds
         # per minute
-        self.assertEqual(meetup("60q"), 3600)
+        self.assertEqual(meetup("60q",self.payload), 3600)
         #NEW: tests if message is correctly sent to the payload without s,m,h,d
         self.assertEqual(self.payload["type"],"meetup in 30 minutes!")
         # tests if absence of letter/unit return value defaults to number of seconds per minute
-        self.assertEqual(meetup("60"), 3600)
+        self.assertEqual(meetup("60",self.payload), 3600)
         # tests whether multiple values, in the absence of a unit, are added together and then
         # return value is converted to number of seconds per minute.
-        self.assertEqual(meetup("30 30"), 3600)
+        self.assertEqual(meetup("30 30",self.payload), 3600)
         # check to see if the function works properly with the optional location parameter
-        #self.assertEqual(meetup("60m", "Zoom"), 3600)
+        #self.assertEqual(meetup("60m",self.payload, "Zoom"), 3600)
         #check to see that location is added to the message correctly.
         self.assertEqual(self.payload["type"],"meetup up at Zoom in 60 minutes!")
 
