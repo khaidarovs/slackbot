@@ -61,51 +61,50 @@ def calculation(self,payload,location):
             # characters, so check to see if it is any o those characters
             if self[i + 1] == 's':
                var1 = var1 + self[i]
-                                if int(self[i]) == 1:
-                                        var1 = var1 + " second"
-                                else:
-                                        var1 = var1 + " seconds"
-                                if i + 2 == len(self):
-                                        var1 = var1 + "!"
-                                else:
-                                        var1 = var1 + " and "
-                res = res + int(self[i])
-                i = i + 2
+               if int(self[i]) == 1:
+                    var1 = var1 + " second"
+               else:
+                    var1 = var1 + " seconds"
+               if i + 2 >= len(self):
+                    var1 = var1 + "!"
+               else:
+                    var1 = var1 + " and "
+               res = res + int(self[i])
+               i = i + 2
             elif self[i + 1] == 'm':
                  var1 = var1 + self[i]
-                                if int(self[i]) == 1:
-                                        var1 = var1 + " minute"
-                                else:
-                                        var1 = var1 + " minutes"
-                                print(i + 2)
-                                if i + 2 == len(self):
-                                        var1 = var1 + "!"
-                                else:
-                                        var1 = var1 + " and "
+                 if int(self[i]) == 1:
+                      var1 = var1 + " minute"
+                 else:
+                      var1 = var1 + " minutes"
+                 if i + 2 == len(self):
+                      var1 = var1 + "!"
+                 else:
+                      var1 = var1 + " and "
                 res = res + (int(self[i]) * 60)
                 i = i + 2
             elif self[i + 1] == 'h':
                  var1 = var1 + self[i]
-                                if int(self[i]) == 1:
-                                        var1 = var1 + " hour"
-                                else:
-                                        var1 = var1 + " hours"
-                                if i + 2 == len(self):
-                                        var1 = var1 + "!"
-                                else:
-                                        var1 = var1 + " and "
+                 if int(self[i]) == 1:
+                      var1 = var1 + " hour"
+                 else:
+                      var1 = var1 + " hours"
+                 if i + 2 == len(self):
+                      var1 = var1 + "!"
+                 else:
+                      var1 = var1 + " and "
                 res = res + (int(self[i]) * 3600)
                 i = i + 2
             elif self[i + 1] == 'd':
                 var1 = var1 + self[i]
-                                if int(self[i]) == 1:
-                                        var1 = var1 + " day"
-                                else:
-                                        var1 = var1 + " days"
-                                if i + 2 == len(self):
-                                        var1 = var1 + "!"
-                                else:
-                                        var1 = var1 + " and "
+                if int(self[i]) == 1:
+                     var1 = var1 + " day"
+                else:
+                     var1 = var1 + " days"
+                if i + 2 == len(self):
+                     var1 = var1 + "!"
+                else:
+                     var1 = var1 + " and "
                 res = res + (int(self[i]) * 86400)
                 i = i + 2
             else:
@@ -117,19 +116,19 @@ def calculation(self,payload,location):
                 # since no s,m,h,d was specificied, default to calculating seconds
                 # per minute
                 var1 = var1 + tmp[0]
-                                if tmp[0] == 1:
-                                        var1 = var1 + " minute!"
-                                else:
-                                        var1 = var1 + " minutes!"
+                if tmp[0] == 1:
+                     var1 = var1 + " minute!"
+                else:
+                     var1 = var1 + " minutes!"
                 res = res + (int(tmp[0]) * 60)
                 i = i + 1
         else:
             tmp = re.split(r"([a-z])", self[i])
             var1 = var1 + tmp[0]
-                        if tmp[0] == 1:
-                                var1 = var1 + " minute"
-                        else:
-                                var1 = var1 + " minutes!"
+            if tmp[0] == 1:
+                 var1 = var1 + " minute"
+            else:
+                 var1 = var1 + " minutes!"
             res = res + (int(tmp[0]) * 60)
             i = i + 1
     return res
