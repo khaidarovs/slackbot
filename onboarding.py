@@ -77,7 +77,7 @@ def welcome_new_user(payload):
     '''
     event = payload.get('event', {})
     channel_name = get_channel_name(event.get('channel'))
-    welcome_text = "Welcome to StudyRoom! To join a class, message me with the command `/join_class SUBJ-#####` (for example, `/join_class CMSC-22001), and I'll add you the study group."
+    welcome_text = "Welcome to StudyRoom! To join a class, message me with the command `/join_class SUBJ-##### MONTH-DAY-YEAR` (for example, `/join_class CMSC-22001 12-10-22), and I'll add you the study group."
     
     if(channel_name == 'general'):
         return send_im_message(event.get('user'), welcome_text)

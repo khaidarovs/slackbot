@@ -9,6 +9,15 @@ from onboarding import *
 class TestOnboarding(unittest.TestCase):
     def setUp(self):
         #Find a valid user in the workspace to test
+        fake_user = {
+            "id": "W012A3CDE",
+            "team_id": "T012AB3C4",
+            "name": "FAKE-USER",
+            "deleted": False,
+            "is_bot": False,
+        }
+        self.fake_user_id = fake_user.get('id')
+
         users = web_client.users_list() 
         self.test_user_id = users.get('members')[2].get('id')
 
@@ -75,7 +84,7 @@ class TestOnboarding(unittest.TestCase):
     
         # Checks that a new class was created and student added
         web_client.conversations_kick(channel=get_channel_id(new_class), user=self.test_user_id)
-        rv_new = handle_onboarding(new_class, self.test_user_id)
+        rv_new = handle_onboarding(new_class, self.fake_user_id)
         channel_id = get_channel_id(new_class)
         
         self.assertTrue(rv_new.get('ok'))
@@ -86,7 +95,7 @@ class TestOnboarding(unittest.TestCase):
 
         # Checks that student was added to an existing class
         web_client.conversations_kick(channel=get_channel_id(existing_class), user=self.test_user_id)
-        rv_existing = handle_onboarding(existing_class, self.test_user_id)
+        rv_existing = handle_onboarding(existing_class, self.fake_user_id)
         channel_id = rv_existing.get('channel').get('id')
         
         self.assertTrue(rv_existing.get('ok'))
