@@ -299,15 +299,30 @@ def send_activity_warning(payload):
     if not is_test: # From Slack, not from Tests
         retval = web_client.chat_postMessage(**msg_construct)
     return cmd_output
-        
+
+@bot_app.route('/scheduler', methods=['POST'])
+def temp_P_Receiver():
+    # Handle receiving data
+    payload = request.form.to_dict() 
+    if payload.get('AUTH')  != "SCHEDULER": 
+        return Response(status=401)
+    # Check conditions for calling our scheduling functions:
+    # - activity_warnings_enabled
+    # - mood_messages_enabled
+    # - if disabled (for both)
+    #      -downtime = "", ignore
+    #      -and downtime = 0d; then enable, and call func
+    #      -otherwise, decrement downtime by 1
+
+    payload['token'] = BOT_TOKEN
+    check_send_activity_warning(payload)
+    return Response(status=200)
+
 def check_send_activity_warning(payload):
-# TODO: This function is not yet implemented. It only has test features in it
-    # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
         is_test = True
     # Extract data from payload
-    user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
 
     # If it's test, then we have a dummy messages return from check_activity
@@ -322,6 +337,8 @@ def check_send_activity_warning(payload):
     if (send_msg):
         # We're below the threshold, lets send msg
         send_activity_warning(payload)
+        print("Sending activity msg!")
+    
     return send_msg # True if msg sent, False if not
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
