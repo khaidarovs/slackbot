@@ -218,7 +218,7 @@ def handle_onboarding(class_name, user_id):
             "ok": True,
             "channel": {
                 "id": channel_id,
-                "name": get_channel_name(name_normalized),
+                "name": "general",
                 "is_channel": True,
                 "is_group": False,
                 "is_im": False,
@@ -229,30 +229,9 @@ def handle_onboarding(class_name, user_id):
                 "unlinked": 0,
                 "name_normalized": "general",
                 "is_read_only": False,
-                "is_shared": False,
-                "is_ext_shared": False,
-                "is_org_shared": False,
-                "pending_shared": [],
-                "is_pending_ext_shared": False,
                 "is_member": True,
                 "is_private": False,
                 "is_mpim": False,
-                "last_read": "1502126650.228446",
-                "topic": {
-                    "value": "For public discussion of generalities",
-                    "creator": "W012A3BCD",
-                    "last_set": 1449709364
-                },
-                "purpose": {
-                    "value": "This part of the workspace is for fun. Make fun here.",
-                    "creator": "W012A3BCD",
-                    "last_set": 1449709364
-                },
-                "previous_names": [
-                    "specifics",
-                    "abstractions",
-                    "etc"
-                ]
             }
         }
     else:
