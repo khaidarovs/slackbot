@@ -150,7 +150,6 @@ def send_im_message(userid, text):
                 "text": text,
                 "username": userid,
                 "bot_id": "B123456",
-                "attachments": [],
                 "type": "message",
                 "subtype": "bot_message",
                 "ts": "1503435956.000247"

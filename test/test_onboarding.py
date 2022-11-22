@@ -32,27 +32,8 @@ class TestOnboarding(unittest.TestCase):
     def test_welcome_new_user(self):
         def make_event_payload(event):
             base_event = {
-                "token": "z26uFbvR1xHJEdHE1OQiO6t8",
-                "team_id": "T061EG9RZ",
-                "api_app_id": "A0FFV41KK",
                 "event": event,
-                "type": "event_callback",
-                "authed_users": [
-                    "U061F7AUR"
-                ],
-                "authorizations": [
-                    {
-                        "enterprise_id": "E12345",
-                        "team_id": "T12345",
-                        "user_id": "U12345",
-                        "is_bot": False
-                    }
-                ],
-                "event_id": "Ev9UQ52YNA",
-                "event_context": "EC12345",
-                "event_time": 1234567890
             }
-
             return base_event
 
         # Function should return True when message is successfully sent
