@@ -34,8 +34,8 @@ def fetch_conversations():
     channels = []
     try:
         # Call the conversations.list method using the WebClient
-        result = web_client.conversations_list(types="public_channel, private_channel", 
-                                               limit=9999)
+        result = web_client.conversations_list(types="public_channel,private_channel", 
+                                               limit=999)
         channels = save_conversations(result["channels"])
     except SlackApiError as e:
         logger.error("Error fetching conversations: {}".format(e))
@@ -176,7 +176,6 @@ def check_channel(channel):
     '''
     channels = fetch_conversations()
     normalized_channel = normalize_channel_name(channel)
-    print(channels)
 
     #access second element in channels (which is list of [id, channel_names]s)
     channel_names = [el[1] for el in channels]
