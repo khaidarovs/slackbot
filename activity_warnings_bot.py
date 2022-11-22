@@ -300,24 +300,6 @@ def send_activity_warning(payload):
         retval = web_client.chat_postMessage(**msg_construct)
     return cmd_output
 
-@bot_app.route('/scheduler', methods=['POST'])
-def temp_P_Receiver():
-    # Handle receiving data
-    payload = request.form.to_dict() 
-    if payload.get('AUTH')  != "SCHEDULER": 
-        return Response(status=401)
-    # Check conditions for calling our scheduling functions:
-    # - activity_warnings_enabled
-    # - mood_messages_enabled
-    # - if disabled (for both)
-    #      -downtime = "", ignore
-    #      -and downtime = 0d; then enable, and call func
-    #      -otherwise, decrement downtime by 1
-
-    payload['token'] = BOT_TOKEN
-    check_send_activity_warning(payload)
-    return Response(status=200)
-
 def check_send_activity_warning(payload):
     is_test = False
     if payload.get('token') == "test_token_1":
@@ -325,7 +307,7 @@ def check_send_activity_warning(payload):
     # Extract data from payload
     channel_id = payload.get('channel_id')
 
-    # If it's test, then we have a dummy messages return from check_activity
+    # If it's test, then we have dummy messages return from check_activity
     n_msgs = check_activity(payload)
     
     # Let's make sure that the Firebase DB has been initialized
@@ -333,7 +315,43 @@ def check_send_activity_warning(payload):
     channelref = firebase_db_init(channel_id)
     activity_warning_vars_ref = channelref.child('activity_warning_vars')
     activity_warnings_threshold_ref = activity_warning_vars_ref.child('activity_warnings_threshold')
-    send_msg = activity_warnings_threshold_ref.get() >= n_msgs
+    activity_warnings_enabled_ref = activity_warning_vars_ref.child('activity_warnings_enabled')
+    # Check conditions for calling our scheduling functions:
+    # - activity_warnings_enabled
+    # - if disabled
+    #      -downtime = "", ignore
+    #      -downtime = 0d; then enable, and call func
+    #      -otherwise, decrement downtime by 1
+    if activity_warnings_enabled_ref.get():
+        send_msg = True
+    else:
+        downtime = activity_warning_vars_ref.child('activity_warnings_downtime').get()
+        if downtime == "":
+            # Indef
+            send_msg = False
+        elif downtime == "0d":
+            # timer ended
+            # Enable activity msgs
+            # Set downtime to ""
+            # Send this activity msg, if applicable
+            activity_warning_vars_ref.update({
+                'activity_warnings_enabled':True,
+                'activity_warnings_downtime':""
+            })
+            send_msg = True
+        else:
+            # Timer still going
+            # Set downtime to N days - 1
+            # Do not send this msg
+            dec_time = int(downtime[:-1]) - 1
+            dec_time_str = str(dec_time) + "d"
+            activity_warning_vars_ref.update({
+                'activity_warnings_downtime':dec_time_str
+            })
+            send_msg = False
+        #end if/else
+    #end if/else
+    send_msg = send_msg and (activity_warnings_threshold_ref.get() >= n_msgs)
     if (send_msg):
         # We're below the threshold, lets send msg
         send_activity_warning(payload)

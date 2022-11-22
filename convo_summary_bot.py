@@ -18,6 +18,8 @@ def summarize_conversation(self):
         if n_msgs > 0:
             msg_sent = True
         return n_msgs, msg_sent
+    # The Following lines only apply to only real invocations of this function
+    # (non-test)
     
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
