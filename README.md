@@ -70,24 +70,17 @@ Functionality:
 - `get_channel_id(name_normalized)`: Returns the ID of the channel with the given name.
 - `send_im_message(userid, text)`: Sends a direct message to the user with the given user id.
 
-### Onboarding Iteration 2 Plan (4.a)
+### Onboarding Changes (4.B)
 1. Fix `test_handle_onboarding()`
--We discovered that these tests require a user to be active in the workspace and we plan to find a workaround for this so that the tests for `handle_onboarding()` can run without the active user requirement. We will be creating fake users and passing those users to our tests that don't interact with the API. 
+-We created a global test_user_id such that in `handle_onboarding()`, the function will detect when the test_user_id is the input and return a custom payload so that no actual call to the API is made. We also added the custom payload that lives in `handle_onboarding()`.
 
-2. Ask for class end date
--We plan to implement part of another feature which will ask for the user to input a class's end date. This will allow the bot to archive and/or delete the channel when the class is over. 
+2. Add date input to welcome message
+-We added further instruction in the welcome message to accomodate for the change in the slash command where the end date will follow the class name
 
-3. Integrate with slash command
--We will have to integrate our code with what the slash command group have written so that when a user inputs a slash command to add/join a class, our functions will be called. 
-
-In this upcoming iteration, we plan on revising our previous tests to ensure they can run under any conditions, and collecting data needed to archive a class channel once the class ends.
-
-### Onboarding Test Changes (4.A)
-We added additional tests for helpers that we implemented in the previous iteration, including:
-- `normalize_channel_name(string channel_name)`, which ensures that class channels have all lowercase class codes
-- `get_channel_name(string channel_id)`, which returns the name of a channel given its id
-- `get_channel_id(string name_normalized)`, which returns the id of a channel given its name
-- `send_im_message(string userid, string test)`, which sends a direct message to a specific user
+### Onboarding Test Changes (4.B)
+- Added `test_user_id` for testing function that need to make API calls but can't due to Slack's limitations thus acts as a switch for returning custom payloads in the functions instead of making the API calls
+- Changed `new_class` and `existing_class` names as they were causing duplicate errors in our workspace  
+- Reduced payload complexity in a couple instances
 
 # Activity Warning Branch - Matt and Maya G
 ### Running the tests
