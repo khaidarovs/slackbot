@@ -1,19 +1,19 @@
-# Testing
-
-In order to run the tests for this branch:
-
+# Testing 
+In order to run the tests for this branch: 
 1. cd into the slackbot directory 
-2. Place the `slackbot-v1-firebase-adminsdk-n7ggn-fcdad3e5ca.json` and `slackbot-software-firebase-adminsdk-xxfr0-f706556aac.json` inside the slackbot directory before running the tests
-3. Run `pip install -r requirements.txt` or `pip3 install -r requirements.txt`to install the necessary requirements
-4. Run the tests using the commands below:
+2. Place the .env file, `slackbot-v1-firebase-adminsdk-n7ggn-fcdad3e5ca.json` and `slackbot-software-firebase-adminsdk-xxfr0-f706556aac.json` proinside the slackbot directory before running the tests 
+3. Run `pip install -r requirements.txt` or `pip3 install -r requirements.txt`to install the necessary requirements 
+4. Run the tests using the commands below: `python -m unittest discover` or `python3 -m unittest discover` 
 
-`python -m unittest discover`
+# Handling Events and Slash Commands Feature (Iteration 2) - Sanzhar and Michael 
 
-or 
-
-`python3 -m unittest discover`
-
-# Handling Events and Slash Commands Feature (Iteration 2) - Sanzhar and Michael
+# Live Testing 
+1. Run `python bot_events_commands.py` or `python3 bot_events_commands.py` to run the events file. 
+2. After running the command you can find the port number in terminal (ie. "Running on http://127.0.0.1:<port number>"). 
+3. Have ngrok in the folder of the program and run the command "ngrok http <port number>" in the ngrok application.
+4. Go to the forwarding tab and copy the generated ngrok link. 
+5. In the Slack developer workspace console for "StudyRoom UChicago" (which you should have already been added as a collaborator), go to the Event Subscriptions tab and go to the Enable Events section. Input the ngrok link and then add the "/slack/events" endpoint at the end of that ngrok link. The link should be verified and work from there. 
+6. For slash commands head to each one of interest and add the "/slash-command" endpoint at the end of the ngrok link as well. Currently though slash commands aren't set up for acceptance tests at the moment, but for future live testing this would apply. 
 
 ## Functionality:
 ```
@@ -65,6 +65,7 @@ Testing changes:
 - Fix potential bugs related to parsing different types of payloads
 - Finish integrating the code with the other features
 - Fix minor database bugs
+- General refactoring with other features (ie. centralizing the time format code under a single file)
 
 # Meetup Feature - Maya Hall and Jason Huang:
 - `meetup`, adds a log to the database with the meeting timestamp, location, message. You can enter a time in the form of "XsXmXhXd" where X are different integers. Meetup converts string explaination of a time to seconds.
