@@ -20,7 +20,7 @@ or
 Each feature is described in more detail below
 
 # ITER2 - Activity Warnings
-The goal of this iteration is to complete the activity warnings feature. 
+The iteration finalized the activity warnings feature. 
 This encompasses the following<br>
 1. Scheduling messages to send
 2. Firebase support for multiple channels <br>
