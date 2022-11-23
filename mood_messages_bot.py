@@ -246,31 +246,62 @@ def check_mood(payload, dict_message):
     #"user": "U2147483697",
     #"text": "Hello world",
 #}
-def check_send_mood_message(payload, dict_message):
-# TODO: This function is not yet implemented. It only has test features in it
 
-    # First check if this is a test or not
+def check_send_mood_message(payload, dict_message):
     is_test = False
     if payload.get('token') == "test_token_1":
         is_test = True
     # Extract data from payload
-    user_id = payload.get('user_id')
     channel_id = payload.get('channel_id')
 
-    # If it's test, then we have a dummy mood (positive, negative, or neutral) return from check_mood 
-    mood = check_mood(payload, dict_message)
     
     # Let's make sure that the Firebase DB has been initialized
     # Also, let's get the channel reference
     channelref = firebase_db_init(channel_id)
     mood_messages_vars_ref = channelref.child('mood_messages_vars')
-    send_msg = mood == -1
+    mood_messages_enabled_ref = mood_messages_vars_ref.child('mood_messages_enabled')
+    # Check conditions for calling our scheduling functions:
+    # - activity_warnings_enabled
+    # - if disabled
+    #      -downtime = "", ignore
+    #      -downtime = 0d; then enable, and call func
+    #      -otherwise, decrement downtime by 1
+    if mood_messages_enabled_ref.get():
+        send_msg = True
+    else:
+        downtime = mood_messages_vars_ref.child('mood_messages_downtime').get()
+        if downtime == "":
+            # Indef
+            send_msg = False
+        elif downtime == "0d":
+            # timer ended
+            # Enable activity msgs
+            # Set downtime to ""
+            # Send this activity msg, if applicable
+            mood_messages_vars_ref.update({
+                'mood_messages_enabled':True,
+                'mood_messages_downtime':""
+            })
+            send_msg = True
+        else:
+            # Timer still going
+            # Set downtime to N days - 1
+            # Do not send this msg
+            dec_time = int(downtime[:-1]) - 1
+            dec_time_str = str(dec_time) + "d"
+            mood_messages_vars_ref.update({
+                'mood_messages_downtime':dec_time_str
+            })
+            send_msg = False
+        #end if/else
+    #end if/else
+    send_msg = send_msg and (check_mood(payload, dict_message) == 1)
     if (send_msg):
         # We're below the threshold, lets send msg
         send_mood_message(payload)
+        print("Sending mood msg!")
+    
     return send_msg # True if msg sent, False if not
-
-
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True)
