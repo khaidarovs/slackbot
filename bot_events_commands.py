@@ -12,8 +12,7 @@ from slack_sdk import WebClient
 from slackeventsapi import SlackEventAdapter
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
-from datetime import date
-from datetime import datetime
+from datetime import date, datetime, timedelta
 import schedule
 import time
 # Firebase related imports
@@ -24,17 +23,16 @@ from firebase_admin import db
 # Loads the tokens from the ".env" file, which are set up as environment 
 # variables. Done to prevent security risks related to revealing the bot 
 # token and signing secret in public. 
-# load_dotenv() 
+load_dotenv() 
 
 bot_app = Flask(__name__)
 
 # You can find the signing secret token in the "Basic Information" -> 
 # "App Credentials" sections of the Slack workspace developer console.
-SIGNING_SECRET = "SIGNING_SECRET" # os.environ['SIGNING_SECRET']
+SIGNING_SECRET = os.environ['SIGNING_SECRET']
 # You can find the bot token in the "OAuth & Permissions" section of the Slack 
 # workspace developer console.
-SLACK_BOT_TOKEN = "SLACK_BOT_TOKEN" # os.environ['SLACK_BOT_TOKEN']
-SLACK_SIGNING_SECRET = "SLACK_SIGNING_SECRET" # os.environ['SLACK_SIGNING_SECRET']
+SLACK_BOT_TOKEN = os.environ['BOT_TOKEN']
 
 web_client = WebClient(token=SLACK_BOT_TOKEN) # Allows communication with Slack
 
@@ -47,15 +45,16 @@ test_token = "test_token" # To prevent more function calls then necessary when t
 bot_id = "bot_id"
 # Team and token IDs used to ensure payload information is coming from the correct 
 # workspace. 
-team_id = "team_id"
+test_team_id = "team_id"
+team_id = test_team_id
 token = test_token
 try:
     # Retrieving the bot and team ids and token from the correct workspace, being the 
     # workspace specified by the tokens in the .env file. 
     auth_test_payload = web_client.auth_test()
     bot_id = auth_test_payload["bot_id"]
-    team_id = auth_test_payload["slack_token"]
-    token = auth_test_payload["team_id"]
+    token = auth_test_payload["slack_token"]
+    team_id = auth_test_payload["team_id"]
 except:
     pass
 
@@ -67,13 +66,16 @@ Note: need to put the JSON file in the same directory as this file
 directory = os.getcwd()
 cred = credentials.Certificate(directory + '/slackbot-software-firebase-adminsdk-xxfr0-f706556aac.json')
 
+# The default app's name is "[DEFAULT]"
+firebase_admin.get_app(name='[DEFAULT]')
+
 # Initialize the app with a service account, granting admin privileges
-# firebase_admin.initialize_app(cred, {
-#     'databaseURL': 'https://slackbot-software-default-rtdb.firebaseio.com/'
-# })
+firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://slackbot-software-default-rtdb.firebaseio.com/'}, 
+    name="slackbot-software-default-rtdb"
+)
 
 ref = db.reference('channels')
-
 """
 Checks if the payload is valid (i.e. has all the fields that we need for processing).
 The fields that we need are:
@@ -130,15 +132,17 @@ def check_id(channel_info, bot_id):
 def handle_message_event(payload):
     #Check if the payload is valid
     #If it is, parse the payload and return a useful information dictionary
-    payload = request.form.to_dict()
+    # TODO: Fix potential bugs with check_valid_event_payload
+    #if (check_valid_event_payload(payload, team_id, token)) == False:
+    #    return Response(status=400)
     # Indicator of a potential channel creation event, since a channel_join 
     # message event can occur 
-    if "subtype" in payload and payload["subtype"] == "channel_join":
+    print(payload["event"])
+    if "subtype" in payload["event"] and payload["event"]["subtype"] == "channel_join":
         handle_workspace_channels(payload)
-    if (check_valid_event_payload(payload, team_id, token)):
-        info_dict = parse_payload(payload)  
-        mood_messages_bot.check_mood(info_dict) # call check_send_mood_messages() instead 
-        # conversation summarizer function gets called here, with info_dict as parameter
+    info_dict = parse_payload(payload)  
+    # mood_messages_bot.check_mood(info_dict) # call check_send_mood_messages() instead 
+    # conversation summarizer function gets called here, with info_dict as parameter
     return Response(status=200)
 
 # Changed handle_workspace_channels from iteration 1 by making the 
@@ -147,14 +151,14 @@ def handle_message_event(payload):
 def handle_workspace_channels(payload):
     #check if the person who created the channel is the bot or a person
     #to delete the channel the function should make an API call
-    channel_rv = web_client.conversations_info(channel=payload["channel"])
+    channel_rv = web_client.conversations_info(channel=payload["event"]["channel"])
     if not channel_rv["ok"]:
         print(channel_rv["error"]) 
         return Response(status=400) 
     if (check_id(channel_rv, bot_id) == False): 
         #channel creator id doesn't equal bot id 
         #archive the channel
-        channel_id = payload["event"]["channel"]["id"]
+        channel_id = payload["event"]["channel"]
         #bot joins, https://api.slack.com/methods/conversations.join
         join_rv = web_client.conversations_join(channel=channel_id) 
         if (not join_rv["ok"]):
@@ -189,9 +193,8 @@ def handle_slash_command():
     if payload['command'] == "/meetup":
         resp = handle_meetup_invocation(payload)
     elif payload['command'] == "/enable_activity_warnings":
-        # if payload["token"] != test_token: # Uncomment the 2 lines after merge
-        #    activity_warnings_bot.enable_activity_warnings(payload) 
-        pass
+        if payload["token"] != test_token: 
+            activity_warnings_bot.enable_activity_warnings(payload) 
     elif payload['command'] == "/disable_activity_warnings":
         resp = handle_disable_activity_warnings_invocation(payload)
     elif payload['command'] == "/set_activity_warning_threshold":
@@ -200,14 +203,41 @@ def handle_slash_command():
         if payload["token"] != test_token:
             activity_warnings_bot.set_activity_warnings_content(payload) 
     elif payload['command'] == "/enable_mood_messages":
-        # if payload["token"] != test_token: # Uncomment the 2 lines after merge
-        #    mood_messages_bot.enable_mood_messages(payload) 
-        pass
+        if payload["token"] != test_token: 
+            mood_messages_bot.enable_mood_messages(payload) 
     elif payload['command'] == "/disable_mood_messages":
         resp = handle_disable_mood_messages_invocation(payload)
     elif payload['command'] == "/join_class":
         resp = handle_join_class_invocation(payload)
+    elif payload["command"] == "/vote_archive":
+        resp = handle_vote(payload)
+    elif payload["command"] == "/summarize_conversation":
+        # if payload["token"] != test_token: 
+        # Call conversation summarizer function 
+        pass 
     return resp
+
+# handle_vote keeps track of voting for deciding whether to archive the channel or not. 
+def handle_vote(payload):
+    choice = payload["text"].strip()
+    if choice != "Y" and choice != "N":
+        return "Vote should be only be \"Y\" for yes, or \"N\" for no." 
+    try: 
+        end_date = ref.child(payload["channel_id"]).child("end_date")  
+        if check_date(end_date) == 0: # Message was sent on the set end date. 
+            # user_id and channel_id fields are always in the payload at this point 
+            # in order to be valid payloads in the first place.
+            users_ref = ref.child(payload["channel_id"]).child('users')
+            users_ref.update({
+                payload["user_id"] : choice
+            })
+        # Message was not sent on the end date. 
+        if check_date(end_date) == -1: 
+            return "Sorry! The voting period for voting to archive the channel has passed."
+    except:
+        # Voting hasn't been recorded in database yet. 
+        return "Sorry! The voting period for voting to archive the channel has not started yet."
+    return Response(status=200) 
 
 # Determines if the parameter to /set_activity_warning_threshold{n_message} 
 # is valid.
@@ -221,22 +251,38 @@ def handle_set_activity_warning_threshold_invocation(payload):
     #    activity_warnings_bot.set_activity_warnings_threshold(payload)
     return Response(status=200)
 
-# Determines if the parameter to /join_class{class number} is valid. 
+# Determines if the parameter to /join_class is valid. 
 def handle_join_class_invocation(payload):
     params = payload['text'].split(" ")
-    invalid_resp = "Sorry! I can't recognize your class input. Be sure that it follows the following format: <four letter department name> <5 number course code>"
-    if len(params) != 2 or len(params[0]) != 4 or len(params[1]) != 5:
-        return invalid_resp
+    invalid_params_resp = "Sorry! You need to input 3 parameters (class department, class code, and class end date), as follows: <four letter department name> <5 number course code> MM-DD-YYYY."
+    invalid_class_resp = "Sorry! I can't recognize your class input. Be sure that it follows the following format: <four letter department name> <5 number course code>"
+    invalid_date_resp = "Sorry! I can't recognize your class end date input. Be sure that it follows the following format: MM-DD-YYYY"
+    invalid_past_date_resp = "Sorry! Your requested date choice has already occurred in the please. Please set up a future end date."
+    if len(params) != 3:
+        return invalid_params_resp 
+    if len(params[0]) != 4 or len(params[1]) != 5:
+        return invalid_class_resp
     dept_param = params[0]
     code_param = params[1]
+    date_param = params[2]
     for i in range(len(dept_param)):
         if dept_param[i].isnumeric():
-            return invalid_resp 
+            return invalid_class_resp 
     for i in range(len(code_param)):
         if code_param[i].isnumeric() == False:
-            return invalid_resp 
-    if payload["token"] != test_token:
-        onboarding.handle_onboarding(" ".join(params), payload["user_id"])
+            return invalid_class_resp 
+    try:
+        end_date = datetime.strptime(date_param.strip(), '%m-%d-%Y')
+        today_date = datetime.now()
+        if end_date.date() < today_date.date(): # if the requested end date occurs before today's date
+            return invalid_past_date_resp
+        if payload["token"] != test_token:
+            channel_ref = ref.child(payload["channel_id"])
+            channel_ref.set({'end_date': end_date})
+            # pass in the date param too after merge
+            # onboarding.handle_onboarding(" ".join(params), payload["user_id"])
+    except:
+        return invalid_date_resp
     return Response(status=200)
 
 # is_time_format_valid checks if the time string contains nonnegative numbers 
@@ -256,11 +302,6 @@ def is_time_format_valid(time_format):
         if time_format[i].isnumeric():
             has_number = True
     return has_number
-
-# Removed compute_time_format from this file since the other functions have and 
-# call an existing implementation that does the same thing, calculating the 
-# number of seconds from now that is specified in the given time format. 
-# Instead, in this file only checking the validity of the time format is done. 
 
 # handle_meetup_invocation determines if the parameters for the requested 
 # /meetup{string time, [optional: location]} command are valid.
@@ -303,7 +344,7 @@ def handle_disable_mood_messages_invocation(payload):
 def check_date(end_date):
     today = date.today()
     ending_date = datetime.strptime(end_date, "%m-%d-%Y").date()
-    day_after = ending_date + datetime.timedelta(days=1)
+    day_after = ending_date + timedelta(days=1)
     if today == ending_date:
         return 0
     elif today == day_after:
@@ -343,6 +384,8 @@ def check_poll_results(channel_id):
 #The next day it counts up the votes and either archives the channel or keeps it.
 def archive_channel(channel_id): 
     json_dict = ref.get()
+    if json_dict == None:
+        return Response(status=200)
     end_date = json_dict[channel_id]['end_date'] 
     if check_date(end_date) == 0:
         #Send a poll to the channel asking whether members want to delete the group
@@ -361,7 +404,7 @@ def archive_channel(channel_id):
             'users': members_dict
         })
         #Send message to the chat
-        msg_text = "Last day of class! If you are in favor of archiving this channel, message me with the command `/vote YorN` (for example, `/vote Y` or `/vote N`). I will count up the votes at the end of the day!"
+        msg_text = "Last day of class! If you are in favor of archiving this channel, message me with the command `/vote_archive YorN` (for example, `/vote_archive Y` or `/vote_archive N`). I will count up the votes at the end of the day!"
         return send_poll_msg(channel_id, msg_text)
     elif check_date(end_date) == 1:
         if check_poll_results(channel_id) == 1:
@@ -386,7 +429,9 @@ def check_channels_end_dates():
     for channel in channel_id_list:
         archive_channel(channel)
 
-schedule.every().day.at("00:00").do(check_channels_end_dates())
+schedule.every().day.at("00:00").do(check_channels_end_dates)
+#schedule.every().day.at("00:00").do(check_send_mood_message())
+#schedule.every().day.at("00:00").do(send_activity_warning()) # Adjust for refactoring
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":

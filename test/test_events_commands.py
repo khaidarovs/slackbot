@@ -1,8 +1,8 @@
 import unittest
 import bot_events_commands
-from flask import Response
-from bot_events_commands import bot_app, test_token, team_id
-from datetime import date
+from flask import Response, request
+from bot_events_commands import bot_app, test_token, test_team_id
+from datetime import date, datetime, timedelta
 
 bot_app.testing = True
 
@@ -13,7 +13,7 @@ def same_responses(resp1, resp2):
     if resp1.__class__.__name__ != resp2.__class__.__name__:
         return False
     resp_type = resp1.__class__.__name__
-    if resp_type == "str" and resp1 == resp2: 
+    if (resp_type == "str" or resp_type == "dict") and resp1 == resp2: 
         return True
     if resp_type == "Response" and resp1.status == resp2.status: 
         return True
@@ -43,6 +43,12 @@ class TestSlashCommandHandling(unittest.TestCase):
         self.invalid_activity_warning_threshold_response = "Sorry! The number of messages can only be a number and greater than 0. Please try again."
         self.invalid_time_format_response = "Sorry! I couldn't recognize your time format. Please include nonnegative numbers in your input and try again."
         self.invalid_course_format_response = "Sorry! I can't recognize your class input. Be sure that it follows the following format: <four letter department name> <5 number course code>"
+        self.invalid_date_response = "Sorry! I can't recognize your class end date input. Be sure that it follows the following format: MM-DD-YYYY"
+        self.invalid_past_date_response = "Sorry! Your requested date choice has already occurred in the please. Please set up a future end date."
+        self.invalid_vote_choice_response = "Vote should be only be \"Y\" for yes, or \"N\" for no." 
+        self.invalid_voting_params_response = "Sorry! You need to input 3 parameters (class department, class code, and class end date), as follows: <four letter department name> <5 number course code> MM-DD-YYYY."
+        self.invalid_voting_past_response = "Sorry! The voting period for voting to archive the channel has passed."
+        self.invalid_voting_early_response = "Sorry! The voting period for voting to archive the channel has not started yet."
         # Valid acknowledgement response status to Slack's HTTP POST 
         # request. Indicates successful command invocation for us since the 
         # relevant actions would have been done in the workspace prior to 
@@ -64,11 +70,32 @@ class TestSlashCommandHandling(unittest.TestCase):
             }
     def make_non_defective_payload(self, command, text):
         return {
-            'token': test_token, 'team_id': 'team_id', 'team_domain': 'team_domain', 
+            'token': test_token, 'team_id': test_team_id, 'team_domain': 'team_domain', 
             'channel_id': 'channel_id', 'channel_name': 'channel_name', 
             'user_id': 'user_id', 'user_name': 'user_name', 'command': command, 
             'text': text
         }
+    @bot_app.route('/slash-command', methods=['POST'])
+    def mock_handle_slash_command(self, team_id, token):
+        payload = request.form.to_dict()
+        if bot_events_commands.check_valid_slash_command_payload(payload, team_id, token) == False:
+            return Response(status=400)
+        resp = Response(status=200)
+        # Keep commands that don't call functions beyond the file, since 
+        # functions called beyond file require an actual token. 
+        if payload['command'] == "/meetup":
+            resp = bot_events_commands.handle_meetup_invocation(payload)
+        elif payload['command'] == "/disable_activity_warnings":
+            resp = bot_events_commands.handle_disable_activity_warnings_invocation(payload)
+        elif payload['command'] == "/set_activity_warning_threshold":
+            resp = bot_events_commands.handle_set_activity_warning_threshold_invocation(payload)
+        elif payload['command'] == "/disable_mood_messages":
+            resp = bot_events_commands.handle_disable_mood_messages_invocation(payload)
+        elif payload['command'] == "/join_class":
+            resp = bot_events_commands.handle_join_class_invocation(payload)
+        elif payload["command"] == "/vote_archive":
+            resp = bot_events_commands.handle_vote(payload)
+        return resp
 
     # Note that for testing we don't need to account for the slash command 
     # itself being incorrectly typed, since Slack only sends over payload 
@@ -80,7 +107,7 @@ class TestSlashCommandHandling(unittest.TestCase):
         defective_payload = self.make_defective_payload(self.enable_activity_warnings_command, '')
         with bot_app.test_client() as client:
             client.post(defective_payload['command'], data=defective_payload)
-            actual_response = bot_events_commands.handle_slash_command()
+            actual_response = self.mock_handle_slash_command(defective_payload['team_id'], defective_payload['token'])
             self.assertTrue(same_responses(actual_response, self.defective_payload_response))
     def test_handle_slash_command_valid_payload(self):
         # /enable_activity_warnings_command and /enable_mood_messages_command 
@@ -90,10 +117,10 @@ class TestSlashCommandHandling(unittest.TestCase):
         valid_payload = self.make_non_defective_payload(self.enable_activity_warnings_command, '')
         with bot_app.test_client() as client:
             client.post(valid_payload['command'], data=valid_payload)
-            actual_response = bot_events_commands.handle_slash_command()
+            actual_response = self.mock_handle_slash_command(valid_payload['team_id'], valid_payload['token'])
             self.assertTrue(same_responses(actual_response, self.valid_payload_response))
 
-    # Added more tests compared to iteration 1.
+    # TODO: Move this code it into a time computation test suite.
     def test_is_time_format_valid(self):
         # Invalid time format: time needs to contain nonnegative numbers. If 
         # none or invalid units (h, d, m, s), seconds per minute are assumed. 
@@ -109,9 +136,6 @@ class TestSlashCommandHandling(unittest.TestCase):
         self.assertTrue(bot_events_commands.is_time_format_valid("1d2s"))
         self.assertTrue(bot_events_commands.is_time_format_valid("1dy2s"))
         self.assertTrue(bot_events_commands.is_time_format_valid("30s30s"))
-
-    # Removed suite of tests for compute_time_format since that function was 
-    # removed from bot_events_commands.
 
     # ---------- handle_disable_activity_warnings_invocation(payload) ----------
     def test_valid_disable_activity_warnings_invocation(self):
@@ -151,26 +175,33 @@ class TestSlashCommandHandling(unittest.TestCase):
 
     # ---------- handle_join_class_invocation(payload) ----------
     def test_valid_handle_join_class_invocation(self):
-        valid_payload_upper = self.make_non_defective_payload(self.join_class_command, 'CSMC 22001')
+        valid_payload_upper = self.make_non_defective_payload(self.join_class_command, 'CSMC 22001 01-20-2050')
         actual_response = bot_events_commands.handle_join_class_invocation(valid_payload_upper)
         self.assertTrue(same_responses(actual_response, self.valid_payload_response))
-        valid_payload_lower = self.make_non_defective_payload(self.join_class_command, 'csmc 22001')
+        valid_payload_lower = self.make_non_defective_payload(self.join_class_command, 'csmc 22001 1-2-2050')
         actual_response = bot_events_commands.handle_join_class_invocation(valid_payload_lower)
         self.assertTrue(same_responses(actual_response, self.valid_payload_response))
     # Added an extra test compared to iteration 1. 
     def test_invalid_handle_join_class_invocation(self):
         # Current class input rules (specific to UChicago courses): 
         # <four letter department name> <5 number course code>
+        # Invalid class params
         invalid_payload_empty = self.make_non_defective_payload(self.join_class_command, '')
         actual_response = bot_events_commands.handle_join_class_invocation(invalid_payload_empty)
-        self.assertTrue(same_responses(actual_response, self.invalid_course_format_response))
-        invalid_payload_len_wrong = self.make_non_defective_payload(self.join_class_command, 'C 21')
+        self.assertTrue(same_responses(actual_response, self.invalid_voting_params_response))
+        invalid_payload_missing_date = self.make_non_defective_payload(self.join_class_command, 'csmc 22001')
+        actual_response = bot_events_commands.handle_join_class_invocation(invalid_payload_missing_date)
+        self.assertTrue(same_responses(actual_response, self.invalid_voting_params_response))
+        invalid_payload_len_wrong = self.make_non_defective_payload(self.join_class_command, 'C 21 1-2-2050')
         actual_response = bot_events_commands.handle_join_class_invocation(invalid_payload_len_wrong)
         self.assertTrue(same_responses(actual_response, self.invalid_course_format_response))
-        # Any extra params result in an invalid input, even if first two is valid.
-        invalid_payload_extra_params = self.make_non_defective_payload(self.join_class_command, 'csmc 22001 e')
-        actual_response = bot_events_commands.handle_join_class_invocation(invalid_payload_extra_params)
-        self.assertTrue(same_responses(actual_response, self.invalid_course_format_response))
+        # Invalid date params (MM-DD-YYYY format, date needs to not be a past date)
+        invalid_payload_past_date = self.make_non_defective_payload(self.join_class_command, 'csmc 22001 01-01-2010')
+        actual_response = bot_events_commands.handle_join_class_invocation(invalid_payload_past_date)
+        self.assertTrue(same_responses(actual_response, self.invalid_past_date_response))
+        invalid_payload_wrong_date_format = self.make_non_defective_payload(self.join_class_command, 'csmc 22001 01-02-201')
+        actual_response = bot_events_commands.handle_join_class_invocation(invalid_payload_wrong_date_format)
+        self.assertTrue(same_responses(actual_response, self.invalid_date_response))
 
     # ---------- handle_meetup_invocation(payload) ----------
     # Testing for an issue related to user parameter input for /meetup command.
@@ -204,19 +235,74 @@ class TestSlashCommandHandling(unittest.TestCase):
     # Added more tests and modified current tests compared to iteration 1. 
     def test_check_valid_slash_command_payload(self):
         valid_payload = self.make_non_defective_payload(self.disable_activity_warnings_command, '2h')
-        actual_response = bot_events_commands.check_valid_slash_command_payload(valid_payload, team_id, test_token)
+        actual_response = bot_events_commands.check_valid_slash_command_payload(valid_payload, valid_payload["team_id"], test_token)
         self.assertTrue(actual_response)
         missing_id_info_payload = {'team_domain': 'team_domain', 'channel_name': 'channel_name',}
-        actual_response = bot_events_commands.check_valid_slash_command_payload(missing_id_info_payload, team_id, test_token)
+        actual_response = bot_events_commands.check_valid_slash_command_payload(missing_id_info_payload, test_team_id, test_token)
         self.assertFalse(actual_response)
         wrong_workspace_payload = {'token': "not_workspace_token", 'team_id': 'not_workspace_team_id', 'team_domain': 'team_domain', 
             'channel_id': 'channel_id', 'channel_name': 'channel_name', 'user_id': 'user_id'}
-        actual_response = bot_events_commands.check_valid_slash_command_payload(wrong_workspace_payload, team_id, test_token)
+        actual_response = bot_events_commands.check_valid_slash_command_payload(wrong_workspace_payload, test_team_id, test_token)
         self.assertFalse(actual_response)
-        empty_info_payload = {'token': test_token, 'team_id': team_id, 'team_domain': 'team_domain', 
+        empty_info_payload = {'token': test_token, 'team_id': test_team_id, 'team_domain': 'team_domain', 
             'channel_id': '', 'channel_name': 'channel_name', 'user_id': ''}
-        actual_response = bot_events_commands.check_valid_slash_command_payload(empty_info_payload, team_id, test_token)
+        actual_response = bot_events_commands.check_valid_slash_command_payload(empty_info_payload, test_team_id, test_token)
         self.assertFalse(actual_response)
+
+    # mock_handle_vote is a mock version of the handle_vote function, in which 
+    # this function does not actually retrieve from and update Firebase, but 
+    # the function logic from handle_vote is preserved otherwise. 
+    def mock_handle_vote(self, payload, mock_channel_voting_data):
+        choice = payload["text"].strip()
+        if choice != "Y" and choice != "N":
+            return "Vote should be only be \"Y\" for yes, or \"N\" for no." 
+        try: 
+            end_date = mock_channel_voting_data['channels'][payload["channel_id"]]['end_date']  
+            if bot_events_commands.check_date(end_date) == 0: # Message was sent on the set end date. 
+                # user_id and channel_id fields are always in the payload at this point 
+                # in order to be valid payloads in the first place.
+                mock_channel_voting_data['channels'][payload['channel_id']]["users"][payload["user_id"]] = choice
+                return mock_channel_voting_data
+            # Message was not sent on the end date. 
+            if bot_events_commands.check_date(end_date) == -1: 
+                return "Sorry! The voting period for voting to archive the channel has passed."
+        except:
+            # Voting hasn't been recorded in database yet. 
+            return "Sorry! The voting period for voting to archive the channel has not started yet."
+        return Response(status=200) 
+
+    # test_valid_handle_vote checks for valid voting being registered.
+    def test_valid_handle_vote(self):
+        payload = self.make_non_defective_payload("/vote_archive", " Y ")
+        today_date_str = date.today().strftime("%m-%d-%Y")
+        mock_channel_voting_data = {"channels": { # Mock data that would be in Firebase
+                payload["channel_id"]: {"end_date": today_date_str, "users":{}}
+            }
+        }
+        actual_response = self.mock_handle_vote(payload, mock_channel_voting_data)
+        expected_response = {"channels": {
+                payload["channel_id"]: { 
+                    "end_date": today_date_str, 
+                    "users": {payload["user_id"]: "Y"}
+                }
+            }
+        }
+        self.assertTrue(same_responses(actual_response, expected_response))
+
+    # test_invalid_handle_vote accounts for invalid voting being made
+    def test_invalid_handle_vote(self):
+        payload = self.make_non_defective_payload("/vote_archive", "Not_valid_vote")
+        actual_response = self.mock_handle_vote(payload, {})
+        self.assertTrue(same_responses(actual_response, self.invalid_vote_choice_response))
+        payload = self.make_non_defective_payload("/vote_archive", "Y")
+        # Test handling when voting period is too far in the future.
+        mock_channel_voting_data = {"channels": {"end_date": "01-20-3000"}}
+        actual_response = self.mock_handle_vote(payload, mock_channel_voting_data)
+        self.assertTrue(same_responses(actual_response, self.invalid_voting_early_response))
+        # Test handling when voting period has passed.
+        mock_channel_voting_data = {"channels": {payload["channel_id"]: {"end_date": "01-20-2000"}}} 
+        actual_response = self.mock_handle_vote(payload, mock_channel_voting_data)
+        self.assertTrue(same_responses(actual_response, self.invalid_voting_past_response))
 
 """
 A test suite for the handle_message_event() function which tests the two 
@@ -232,7 +318,7 @@ class TestCheckingPayload(unittest.TestCase):
     def setUp(self):
         self.payload = {
                         "token": test_token,
-                        "team_id": team_id,
+                        "team_id": test_team_id,
                         "api_app_id": "A0FFV41KK",
                         "event": {
                             "type": "message",
@@ -286,7 +372,7 @@ class TestCheckingPayload(unittest.TestCase):
                     }
         self.bad_payload2 = { #event type is missing
                         "token": test_token,
-                        "team_id": team_id,
+                        "team_id": test_team_id,
                         "api_app_id": "A0FFV41KK",
                         "event": {
                             "type": "",
@@ -313,7 +399,7 @@ class TestCheckingPayload(unittest.TestCase):
                     }
         self.bad_payload3 = { #event channel and user missing
                     "token": test_token,
-                    "team_id": team_id,
+                    "team_id": test_team_id,
                     "api_app_id": "A0FFV41KK",
                     "event": {
                         "type": "message",
@@ -341,10 +427,10 @@ class TestCheckingPayload(unittest.TestCase):
 
     def test_valid_payload(self):
         print("TESTING THE VALID PAYLOAD\n")
-        self.assertTrue(bot_events_commands.check_valid_event_payload(self.payload, team_id, test_token))
-        self.assertFalse(bot_events_commands.check_valid_event_payload(self.bad_payload, team_id, test_token))
-        self.assertFalse(bot_events_commands.check_valid_event_payload(self.bad_payload2, team_id, test_token))
-        self.assertFalse(bot_events_commands.check_valid_event_payload(self.bad_payload3, team_id, test_token))
+        self.assertTrue(bot_events_commands.check_valid_event_payload(self.payload, test_team_id, test_token))
+        self.assertFalse(bot_events_commands.check_valid_event_payload(self.bad_payload, test_team_id, test_token))
+        self.assertFalse(bot_events_commands.check_valid_event_payload(self.bad_payload2, test_team_id, test_token))
+        self.assertFalse(bot_events_commands.check_valid_event_payload(self.bad_payload3, test_team_id, test_token))
 
     def test_parsing_payload(self):
         print("TESTING PARSING THE PAYLOAD\n")
@@ -464,9 +550,9 @@ class TestHandlingWorkspace(unittest.TestCase):
 class TestCheckingDate(unittest.TestCase):
     def setUp(self):
         self.end_date = date.today().strftime("%m-%d-%Y")
-        self.day_after = date.today() + datetime.timedelta(days=1)
+        self.day_after = date.today() + timedelta(days=1)
         self.day_after_str = self.day_after.strftime("%m-%d-%Y")
-        self.day_before = date.today() - datetime.timedelta(days=1)
+        self.day_before = date.today() - timedelta(days=1)
         self.day_before_str = self.day_before.strftime("%m-%d-%Y")
 
     # def create_date_after(self, end_date):
@@ -490,8 +576,8 @@ class TestCheckingDate(unittest.TestCase):
         # after = self.create_date_after(self.end_date)
         # before = self.create_date_before(self.end_date)
         self.assertEqual(bot_events_commands.check_date(self.end_date), 0)
-        self.assertEqual(bot_events_commands.check_date(self.day_after_str), 1)
-        self.assertEqual(bot_events_commands.check_date(self.day_before_str), -1)
+        self.assertEqual(bot_events_commands.check_date(self.day_before_str), 1)
+        self.assertEqual(bot_events_commands.check_date(self.day_after_str), -1)
 
 
 if __name__ == '__main__':
