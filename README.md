@@ -66,7 +66,8 @@ Testing changes:
 
 ## Future Plans
 - We plan to add a function that automatically calls the `in_five` function at set intervals, activated after bot becomes online.
-- [I DONT KNOW IF MAYA WANTED TO ADD ANYTHING. DELETE IF THERE'S NOTHING HERE WHEN COMPILING TOGETHER]
+- Create a standard date-time system for the bot.
+- If time permits, reactions can bping attendees for each meeting.
 
 # Onboarding (Sabine and Grace)
 Functionality:
