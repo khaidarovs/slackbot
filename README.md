@@ -30,12 +30,14 @@ making sure the functions are called at the right times). Thus, we are just
 testing the functionality of the functions called by the scheduler. <br>
 # ITER2 - Conversation Summary
 Conversation summary is a new feature that is a response to a slash command 
-`/summarize_conversation [hrs]` which summarizes the conversation in the past N 
+`/summarize_conversation` which summarizes the conversation in the past 6 
 hrs. Because the conversation summary will differ each time due to NLP, our two
-test cases check if there are 0 msgs in the past N hrs, or if there are >0 msgs,
-and test the correct behavior for each case
+test cases check if there are 0 msgs in the past 6 hrs, or if there are >0 msgs,
+and test the correct behavior for each case<br>
+Note that we plan to extend this feature to allow for an aribtrary amount of 
+time as opposed to fixed 6 hour conversation history period
 # ITER2 - Mood Messages
-The goal of this iteration is to complete the mood messages feature. 
+This iteration finalized the mood messages feature
 This encompasses the following<br>
 1. Making sure send message is only implemented when the mood is negative
 2. Scheduling messages to send
