@@ -59,7 +59,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
     def test_summary_model(self):
         input_msg = "I missed class today. Can somebody explain the observer pattern please? Sure, I can explain. It may be easier if we discuss this over the phone OK. Let's meet up at 7pm today I can't make 7pm, can we do later? Sure, let's meet at 9pm tonight Sounds good, do we want to discuss anything else? I wanted to talk also review the interpretor pattern. Ok cool. The interpretor pattern is also confusing for me"
         summary = summary_model(input_msg)
-        output_msg = "It may be easier if we discuss this over the phone OK. Let's meet up at 7pm today I can't make 7pm, can we do later? Sure, let's meet at 9pm tonight Sounds good, do we want to discuss anything else?"
+        output_msg = " It may be easier if we discuss this over the phone OK. Let's meet up at 7pm today I can't make 7pm, can we do later? Sure, let's meet at 9pm tonight Sounds good, do we want to discuss anything else?"
         self.assertEqual(summary, output_msg)
 
         
