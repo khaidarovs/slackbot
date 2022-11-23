@@ -1,8 +1,6 @@
 # Overview
-This branch represents the test suite for Iteration 2 submission A, encompassing
-activity warnings, mood messages, and conversation summary (new feature). These
-3 features have unittests on separate branches, but this branch merged all these
-3 branches to make them easier to run :)
+For Iter2 Submission A, Please see iter2-activity-mood-convo branch for instructions
+on running tests. This branch should NOT be used in grading for this submission. :)
 
 # Testing
 
@@ -22,7 +20,7 @@ or
 Each feature is described in more detail below
 
 # ITER2 - Activity Warnings
-The goal of this iteration is to complete the activity warnings feature. 
+The iteration finalized the activity warnings feature. 
 This encompasses the following<br>
 1. Scheduling messages to send
 2. Firebase support for multiple channels <br>
