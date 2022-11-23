@@ -15,26 +15,6 @@ or
 
 Each feature is described in more detail below
 
-## Milestone 4A
-
-In order to run the tests, please checkout the following branches:
-- iter2-activity-mood-convo (Matthew and Maya G)
-- meetup_time_schedule_iter2 (Jason and Maya H)
-- handle_commands_iter2 (Michael and Sanzhar)
-- onboarding_i2 (Sabine and Grace)
-and follow the instructions above in order to run the tests.
-
-In order to enter each branch run the following commands:
-```
-1. git clone https://github.com/khaidarovs/slackbot.git (HTTPS)
-or
-1. git clone git@github.com:khaidarovs/slackbot.git (SSH)
-2. cd slackbot
-3. git branch -r (to see the different branches)
-4. git fetch origin
-5. git switch -c <branch name> origin/<branch name>
-6. Follow the steps above to run the tests (the json file will be attached to the email)
-```
 # Handling Events and Slash Commands Feature - Sanzhar and Michael
 
 Compared to the iteration 1 design document, we largely followed the functions outlined in the handling slash command and events feature. We fleshed out the handle_slash_command function more, by having the function branch off into intermediate handling functions, for slash commands that require parameters. The idea is handle_slash_command is the first function called whenever a slash command is invoked. From there is directly handles calling the slash command implementation functions written in the other features, for slash commands that do not have parameters. We also thought that handle_slash_command should also handle defective payload information, since we are relying on Slack to provide us non-malformed data in their POST requests.
@@ -107,42 +87,42 @@ Within the workspace:
 - Execute the command `/join_class cmsc-22002 12-11-22` to be added to an already existing class channel.
 - Execute the command `/join_class bios-12345 03-12-24` to be added to a non-existing class channel.
 
-# Activity Warning Branch - Matt and Maya G
-### Running the tests
-First, run the bot to set up connection to the Firebase DB<br />
-    `python bot.py`<br />
-To run the tests, use the following command:<br />
-    `python -m unittest discover`<br />
-*Note:* 
-Running the bot requires access to the .env file and Firebase DB, which 
-contain sensitive information and cannot be posted on GitHub.
-Contact a SlackBot dev if you do not have these files.<br />
-
-### Functions tested
-These tests are unit tests for the *"Activity Warnings"* functionality of the 
-Slack Bot. This includes the following functions:<br />
- - `enable_activity_warnings()`<br />
- - `disable_activity_warnings()`<br />
- - `set_activity_warnings_threshold()`<br />
- - `set_activity_warnings_content()`<br />
- - `check_activity()`<br />
- - `send_activity_warning()` <br />
-
-## Functions tested
-These tests are unit tests for the *"Mood Messages"* functionality of the Slack Bot. This includes the following functions:<br />
- - `enable_mood_messages()`<br />
- - `disable_mood_messages()`<br />
- - `set_mood_messages_content`<br />
- - `check_mood()`<br />
- - `send_mood_message()` <br />
- - 
- ### Notes
- Currently, the Activity Warnings and Mood Messages feature only can be run in one place at a time,
- as the Firebase DB has not been fully configured to handle multiple channels and 
- servers. This will be fixed in a future sprint.<br /><br />
- Currently, Activity Warnings and Mood Messages scheduled sending has not been implemented in iteration
- 1 but will be implemented in iteration 2. The code in this iteration is foundational
- for checking activity; i.e. a function that gets the last N messages, and a function
- that actually sends the activity message. Scheduled sending and the simple
- integer comparison between (N_Messages in last 24 hrs) and (Threshold) have yet 
- to be implemented. :)
+# ITER2 - Activity Warnings, Conversation Summary, and Mood Messages - Matt and Maya G
+## Activity Warnings
+The iteration finalized the activity warnings feature. 
+This encompasses the following<br>
+1. Scheduling messages to send
+2. Firebase support for multiple channels <br>
+Unit tests for both of these features have been added. However, there are 
+some practical issues with testing scheduling that make it difficult to test (i.e.
+making sure the functions are called at the right times). Thus, we are just 
+testing the functionality of the functions called by the scheduler. <br>
+## Conversation Summary
+Conversation summary is a new feature that is a response to a slash command 
+`/summarize_conversation` which summarizes the conversation in the past 6 
+hrs. Because the conversation summary will differ each time due to NLP, our two
+test cases check if there are 0 msgs in the past 6 hrs, or if there are >0 msgs,
+and test the correct behavior for each case<br>
+Note that we plan to extend this feature to allow for an aribtrary amount of 
+time as opposed to fixed 6 hour conversation history period
+## Mood Messages
+This iteration finalized the mood messages feature
+This encompasses the following<br>
+1. Making sure send message is only implemented when the mood is negative
+2. Scheduling messages to send
+3. Firebase support for multiple channels <br>
+Unit tests for all three of these features have been added. However, there are 
+some practical issues with testing scheduling that make it difficult to test (i.e.
+making sure the functions are called at the right times). Thus, we are just 
+testing the functionality of the functions called by the scheduler. <br>
+## Testing Notes
+### Unit Tests
+Unit tests for each function and possible unit interactions are in place
+### Acceptance Testing
+Acceptance tests for activity & mood have been put in place, which walk through
+different possible command calls by users and ensures that variables and command
+outputs are correct
+## To-fix and Final Implementations for Assgn 5
+Minor bug in mood messages test cases<br>
+Add support for variable time for convo summary<br>
+Finalize scheduling integration
