@@ -677,14 +677,92 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         activity_warnings_content = channelref.child('activity_warning_vars').child('activity_warnings_content')
 
         self.assertTrue(activity_warnings_enabled.get())
-        self.assertEqual(activity_warnings_threshold.get(), 8)
+        self.assertEqual(activity_warnings_threshold.get(), 15)
         self.assertEqual(activity_warnings_content.get(), "lol")
 
         # Let's delete this DB entry
         ref.child('CTEST1').delete()
-    # def test_acceptance_disabled(self):
+    def test_acceptance_disabled(self):
+        # 1. enable
+        # 2. disable with downtime 2d
+        # 3. call check_send and make sure decrement works
+        #       - should still be disabled, downtime = 1d
+        #       - msg should not send
+        # 4. call check_send and make sure decrement works
+        #       - should be enabled and send msg
+        # 5. make sure vals set correctly
 
+        # 1.
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST1",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/enable_activity_warnings",
+            "text":"",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        enable_activity_warnings(self.payload)
+
+        # 2. 
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST1",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/disable_activity_warnings",
+            "text":"1d",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        disable_activity_warnings(self.payload)
         
+        # 3.
+        input = {
+        "token":"test_token_1",
+        "channel_id":"CTEST1",
+        "user_id":"Test_User_1"
+        }
+        self.payload = input
+        cmd_output = check_send_activity_warning(self.payload)
+        # expect no send
+        self.assertFalse(cmd_output)
+        # expect enabled = false, downtime = 0d
+        channelref = ref.child("CTEST1")
+        activity_warnings_enabled = channelref.child('activity_warning_vars').child('activity_warnings_enabled')
+        activity_warnings_downtime = channelref.child('activity_warning_vars').child('activity_warnings_downtime')
+        self.assertFalse(activity_warnings_enabled.get())
+        self.assertEqual(activity_warnings_downtime.get(), "0d")
+
+        # 4.
+        input = {
+        "token":"test_token_1",
+        "channel_id":"CTEST1",
+        "user_id":"Test_User_1"
+        }
+        self.payload = input
+        cmd_output = check_send_activity_warning(self.payload)
+        # expect send
+        self.assertTrue(cmd_output)
+        # expect enabled = true, downtime = ""
+        channelref = ref.child("CTEST1")
+        activity_warnings_enabled = channelref.child('activity_warning_vars').child('activity_warnings_enabled')
+        activity_warnings_downtime = channelref.child('activity_warning_vars').child('activity_warnings_downtime')
+        self.assertTrue(activity_warnings_enabled.get())
+        self.assertEqual(activity_warnings_downtime.get(), "")
+        
+        # 5. (see above assertions)
 
 if __name__ == '__main__':
     unittest.main()
