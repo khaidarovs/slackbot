@@ -13,7 +13,7 @@ In order to run the tests for this branch:
 3. Have ngrok in the folder of the program and run the command "ngrok http <port number>" in the ngrok application.
 4. Go to the forwarding tab and copy the generated ngrok link. 
 5. In the Slack developer workspace console for "StudyRoom UChicago" (which you should have already been added as a collaborator), go to the Event Subscriptions tab and go to the Enable Events section. Input the ngrok link and then add the "/slack/events" endpoint at the end of that ngrok link. The link should be verified and work from there. 
-6. For slash commands head to each one of interest and add the "/slash-command" endpoint at the end of the ngrok link as well. Currently though slash commands aren't set up for acceptance tests at the moment, but for future live testing this would apply. 
+6. For slash commands head to each one of interest under the Slash Commands section of the developer workspace console, and add the "/slash-command" endpoint at the end of the ngrok link as well. Currently though slash commands aren't set up for acceptance tests at the moment, but for future live testing this would apply. 
 
 ## Functionality:
 ```
