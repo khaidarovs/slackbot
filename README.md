@@ -82,7 +82,7 @@ Functionality:
 - Changed `new_class` and `existing_class` names as they were causing duplicate errors in our workspace  
 - Reduced payload complexity in a couple instances
 
-### Acceptance Test
+### Acceptance Testing
 Within the workspace:
 - Execute the command `/join_class cmsc-22002 12-11-22` to be added to an already existing class channel.
 - Execute the command `/join_class bios-12345 03-12-24` to be added to a non-existing class channel.
