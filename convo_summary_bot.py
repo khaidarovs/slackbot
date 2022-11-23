@@ -57,8 +57,8 @@ def summary_model(text):
 # payload.get('dummy_messages')) to return a single string with all the messages 
 def parse_messages(messages):
     output_string = ''
-    for i in range(len(dummy_msg)):
-        string = str(dummy_msg[i])
+    for i in range(len(messages)):
+        string = str(messages[i])
         new_str = re.sub("{'", '', string)
         final_str = re.sub("'}", ' ', new_str)
         final_str1 = re.sub('{"', '', final_str)
