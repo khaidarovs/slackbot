@@ -330,6 +330,7 @@ def check_send_activity_warning(payload):
             # Indef
             send_msg = False
         elif downtime == "0d":
+            print(downtime)
             # timer ended
             # Enable activity msgs
             # Set downtime to ""
@@ -356,7 +357,6 @@ def check_send_activity_warning(payload):
         # We're below the threshold, lets send msg
         send_activity_warning(payload)
         print("Sending activity msg!")
-    
     return send_msg # True if msg sent, False if not
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.

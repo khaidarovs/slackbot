@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch
-from bot import *
+from iter2_activity_mood_convo_bot import *
 import requests
 
 # Filename: test_mood_messages.py
@@ -349,14 +349,30 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
     # calls check_mood and send_mood_message, and this function is called
     # on a schedule every 24hrs. This checks the case when no mood msg is sent
     def test_check_send_mood_message_nosend(self):
+        # enable
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST1",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/enable_mood_messages",
+            "text":"",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        enable_mood_messages(self.payload)
         #set mood to positive/neutral
         inp1 = {
         "token": "z26uFbvR1xHJEdHE1OQiO6t8",
         "channel": "CTEST1",
         "user": "U2147483697",
-        "text": "I am so positive!",
+        "text": "I am so positive! This is good. Positivity. Good. Positive.",
         }
-        self.payload = inp1
         # Now we can proceed
         input = {
         "token":"test_token_1",
@@ -373,6 +389,24 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
     # calls check_mood and send_mood_message, and this function is called
     # on a schedule every 24hrs. This checks the case when the moods msg is sent
     def test_check_send_mood_messages_dosend(self):
+        #enable 
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST1",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/enable_mood_messages",
+            "text":"",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        enable_mood_messages(self.payload)
+
         #set mood to negative
         inp2 = {
         "token": "z26uFbvR1xHJEdHE1OQiO6t8",
@@ -675,7 +709,7 @@ class Test_Slash_Command_Mood_Messages(unittest.TestCase):
             "token": "test_token_1",
             "channel": "CTEST1",
             "user": "U2147483697",
-            "text": "I feel sad"
+            "text": "I feel sad. Very sad. I feel sad."
             }
         self.payload = input
         cmd_output = check_send_mood_message(self.payload, info_dict)

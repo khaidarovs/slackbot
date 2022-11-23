@@ -541,6 +541,23 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
             "channel_name":"Test_Channel_1",
             "user_id":"U2147483697",
             "user_name":"Test_User_1",
+            "command":"/enable_activity_warnings",
+            "text":"",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        enable_activity_warnings(self.payload)
+
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST1",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
             "command":"/set_activity_warning_threshold",
             "text":"5",
             "response_url":"https://hooks.slack.com/commands/1234/5678",
@@ -565,10 +582,25 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
     # calls check_activity and send_activity_message, and this function is called
     # on a schedule every 24hrs. This checks the case when the activity msg is sent
     def test_check_send_activity_warnings_dosend(self):
-    
-
         # The test for check_activity uses 10 msgs. So we want to change the 
         # threshold real quick to a value more than or equal to 10
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST1",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/enable_activity_warnings",
+            "text":"",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        enable_activity_warnings(self.payload)
+
         slash_cmd = {
             "token":"test_token_1",
             "team_id":"T0001",
@@ -685,6 +717,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
     def test_acceptance_disabled(self):
         # 1. enable
         # 2. disable with downtime 2d
+        # 2.5. set threshold
         # 3. call check_send and make sure decrement works
         #       - should still be disabled, downtime = 1d
         #       - msg should not send
@@ -727,7 +760,23 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         }
         self.payload = slash_cmd
         disable_activity_warnings(self.payload)
-        
+        # 2.5
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST1",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/set_activity_warning_threshold",
+            "text":"15",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        set_activity_warnings_threshold(self.payload)
         # 3.
         input = {
         "token":"test_token_1",

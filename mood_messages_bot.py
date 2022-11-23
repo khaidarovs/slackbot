@@ -295,7 +295,8 @@ def check_send_mood_message(payload, dict_message):
             send_msg = False
         #end if/else
     #end if/else
-    send_msg = send_msg and (check_mood(payload, dict_message) == 1)
+
+    send_msg = send_msg and (check_mood(payload, dict_message) == -1)
     if (send_msg):
         # We're below the threshold, lets send msg
         send_mood_message(payload)
