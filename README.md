@@ -38,17 +38,16 @@ New Functionality (4.B)
 - check_channels_end_dates()
 ```
 
-# Handle Events Changes (4.B)
+## Handle Events Changes (4.B)
 Added the functionality for storing the class end date in Firebase, and then checking if today is that date every 24h. In case today is that date, we send out a poll into the channel where users vote "Y" or "N" in favor of archiving the channel. The next day we make a decision based on the number of votes. 
 
-# Handle Events Test Changes (4.B)
+## Handle Events Test Changes (4.B)
 We updated the tests for check_date as well as a few minor updates to other tests. You can find more details about other changes below.
 
-# Acceptance Testing
-If you join a new class and set the end date, on that day a message should be sent to the chat asking you to vote. 
-Use "/vote_archive "Y"" or "/vote_archive "N"" to cast your vote. 
+## Acceptance Testing
+- In the workspace, head to "Add Channel" -> "Create new channel". Name the channel and leave it public. Since the channel was not created by the bot, you should see that the channel was not even created. To verify, go to "unread messages" from SlackBot, which should say that the bot has archived your channel.
 
-# Changes from Iteration 1 (Milestone 4A)
+## Changes from Iteration 1 (Milestone 4A)
 
 Main outlined features were implemented, with the following function changes. 
 - Began the process of integrating the project files by setting up or making the function calls outside of bot_events_commands.py, when handling slash commands and message events.
@@ -61,3 +60,8 @@ Testing changes:
 - Modified TestHandlingWorkspace structure by testing a mock version of handle_workspace_channels and check_id.
 - Removed compute_time_format tests 
 - Wrote testing for the archiving a channel at a requested date feature. 
+
+## Things to do
+- Fix potential bugs related to parsing different types of payloads
+- Finish integrating the code 
+- Fix minor database bugs
