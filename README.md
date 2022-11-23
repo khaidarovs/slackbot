@@ -3,8 +3,8 @@
 In order to run the tests for this branch:
 
 1. cd into the slackbot directory 
-2. Place the `slackbot-v1-firebase-adminsdk-n7ggn-fcdad3e5ca.json` inside the slackbot directory before running the tests
-3. Run `pip install -r requirements.txt` to install the necessary requirements
+2. Place the `slackbot-v1-firebase-adminsdk-n7ggn-fcdad3e5ca.json` and `slackbot-software-firebase-adminsdk-xxfr0-f706556aac.json` inside the slackbot directory before running the tests
+3. Run `pip install -r requirements.txt` or `pip3 install -r requirements.txt`to install the necessary requirements
 4. Run the tests using the commands below:
 
 `python -m unittest discover`
@@ -45,7 +45,7 @@ Added the functionality for storing the class end date in Firebase, and then che
 We updated the tests for check_date as well as a few minor updates to other tests. You can find more details about other changes below.
 
 ## Acceptance Testing
-- In the workspace, head to "Add Channel" -> "Create new channel". Name the channel and leave it public. Since the channel was not created by the bot, you should see that the channel was not even created. To verify, go to "unread messages" from SlackBot, which should say that the bot has archived your channel.
+- In the workspace, head to "Add Channel" -> "Create new channel". Name the channel and leave it public. Since the channel was not created by the bot, you should see that the channel was not even created. To verify, go to "unread messages" from SlackBot, which should say that the bot has archived your channel. NOTE: the acceptance test for the slash commands may be currently impacted by this, since there is a chronological process that occurs with channel creation through onboarding onto classes, and eventually deleting said courses. 
 
 ## Changes from Iteration 1 (Milestone 4A)
 
@@ -63,5 +63,5 @@ Testing changes:
 
 ## Things to do
 - Fix potential bugs related to parsing different types of payloads
-- Finish integrating the code 
+- Finish integrating the code with the other features
 - Fix minor database bugs
