@@ -126,7 +126,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
     # This test case tests the functionality of the function
     # disable_activity_warnings(), where activity warnings are disabled
     # for a specified definite downtime
-    def test_disable_activity_warnings_definite_minutes(self):
+    def test_disable_activity_warnings_definite(self):
         # First let's set input of the slash command
         slash_cmd = {
             "token":"test_token_1",
@@ -565,6 +565,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
     # calls check_activity and send_activity_message, and this function is called
     # on a schedule every 24hrs. This checks the case when the activity msg is sent
     def test_check_send_activity_warnings_dosend(self):
+    
 
         # The test for check_activity uses 10 msgs. So we want to change the 
         # threshold real quick to a value more than or equal to 10
@@ -594,6 +595,96 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
 
         cmd_output = check_send_activity_warning(self.payload)
         self.assertTrue(cmd_output)
+    
+    # Acceptance test where we call multiple functions and verify values
+    # are correctly stored in the DB
+    def test_acceptance_enabled(self):
+        # 1. enable
+        # 2. set threshold
+        # 3. set content 
+        # 4. call check_send
+        # 5. make sure vals are set correctly
+
+        # 1.
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST1",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/enable_activity_warnings",
+            "text":"",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        enable_activity_warnings(self.payload)
+        # 2.
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST1",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/set_activity_warning_threshold",
+            "text":"15",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        set_activity_warnings_threshold(self.payload)
+        # 3.
+        slash_cmd = {
+            "token":"test_token_1",
+            "team_id":"T0001",
+            "team_domain":"test_domain",
+            "channel_id":"CTEST1",
+            "channel_name":"Test_Channel_1",
+            "user_id":"U2147483697",
+            "user_name":"Test_User_1",
+            "command":"/set_activity_warning_content",
+            "text":"lol",
+            "response_url":"https://hooks.slack.com/commands/1234/5678",
+            "trigger_id":"13345224609.738474920.8088930838d88f008e0",
+            "api_app_id":"A123456"
+        }
+        self.payload = slash_cmd
+        set_activity_warnings_content(self.payload)
+        # 4. threshold is 15 (see above) so we expect it to send msg
+        input = {
+        "token":"test_token_1",
+        "channel_id":"CTEST1",
+        "user_id":"Test_User_1"
+        }
+        self.payload = input
+        # we want to check output here
+        cmd_output = check_send_activity_warning(self.payload)
+        self.assertTrue(cmd_output)
+
+        # 5. Vars we need to check
+        # enabled = true
+        # threshold = 15
+        # content = "lol"
+        channelref = ref.child("CTEST1")
+        activity_warnings_threshold = channelref.child('activity_warning_vars').child('activity_warnings_threshold')
+        activity_warnings_enabled = channelref.child('activity_warning_vars').child('activity_warnings_enabled')
+        activity_warnings_content = channelref.child('activity_warning_vars').child('activity_warnings_content')
+
+        self.assertTrue(activity_warnings_enabled.get())
+        self.assertEqual(activity_warnings_threshold.get(), 8)
+        self.assertEqual(activity_warnings_content.get(), "lol")
+
+        # Let's delete this DB entry
+        ref.child('CTEST1').delete()
+    # def test_acceptance_disabled(self):
+
+        
 
 if __name__ == '__main__':
     unittest.main()
