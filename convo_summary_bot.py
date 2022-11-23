@@ -75,26 +75,38 @@ def summarize_conversation(self):
     is_test = False
     if payload.get('token') == "test_token_1":
         is_test = True
-    
+    channel_id = payload.get('channel_id')
+    # Get the msgs
     if is_test:
-        msgs = payload.get('dummy_messages')
-        n_msgs = len(msgs)
-        msg_sent = False
-        if n_msgs > 0:
-            parsed_msg = parse_messages(msgs)
-            summary = summary_model(parsed_msg)
-            msg_construct = {
-            "token":BOT_TOKEN,
-            "channel":channel_id,
-            "text": summary,
-            "user":user_id,
-            "blocks":cmd_output
+        conversation_history = payload.get('dummy_messages')
+        n_msgs = len(conversation_history)
+    else:
+        time_6hrago = time.time() - 21600
+        history_query = {
+        "token":BOT_TOKEN,
+        "channel":channel_id,
+        "oldest":time_6hrago
+        # "limit":activity_warnings_threshold.get()
         }
-            if not is_test: # From Slack, not from Tests
-                retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
-            msg_sent = True
+        retval = web_client.conversations_history(**history_query)
+        conversation_history = retval["messages"]
+        n_msgs = len(conversation_history)
+    # Summarize the messages and send the summary
+    if n_msgs > 0:
+        parsed_msg = parse_messages(conversation_history)
+        summary = summary_model(parsed_msg)
+        msg_construct = {
+        "token":BOT_TOKEN,
+        "channel":channel_id,
+        "text": summary
+        }
+        if not is_test: # From Slack, not from Tests
+            retval = web_client.chat_postMessage(**msg_construct) 
+        else:
+            print(summary) # Visual debug if Test
+        msg_sent = True
 
-        return n_msgs, msg_sent
+    return n_msgs, msg_sent
 
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
