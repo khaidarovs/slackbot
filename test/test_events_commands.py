@@ -463,31 +463,35 @@ class TestHandlingWorkspace(unittest.TestCase):
 
 class TestCheckingDate(unittest.TestCase):
     def setUp(self):
-        self.end_date = str(date.today())
+        self.end_date = date.today().strftime("%m-%d-%Y")
+        self.day_after = date.today() + datetime.timedelta(days=1)
+        self.day_after_str = self.day_after.strftime("%m-%d-%Y")
+        self.day_before = date.today() - datetime.timedelta(days=1)
+        self.day_before_str = self.day_before.strftime("%m-%d-%Y")
 
-    def create_date_after(self, end_date):
-        date_after = list(end_date)
-        day = int(end_date[-2]) * 10 + int(end_date[-1])
-        day_after = str(day + 1)
-        date_after[-2] = day_after[0]
-        date_after[-1] = day_after[1]
-        return "".join(date_after)
+    # def create_date_after(self, end_date):
+    #     date_after = list(end_date)
+    #     day = int(end_date[-2]) * 10 + int(end_date[-1])
+    #     day_after = str(day + 1)
+    #     date_after[-2] = day_after[0]
+    #     date_after[-1] = day_after[1]
+    #     return "".join(date_after)
 
-    def create_date_before(self, end_date):
-        date_before = list(end_date)
-        day = int(end_date[-2]) * 10 + int(end_date[-1])
-        day_before = str(day - 1)
-        date_before[-2] = day_before[0]
-        date_before[-1] = day_before[1]
-        return "".join(date_before)
+    # def create_date_before(self, end_date):
+    #     date_before = list(end_date)
+    #     day = int(end_date[-2]) * 10 + int(end_date[-1])
+    #     day_before = str(day - 1)
+    #     date_before[-2] = day_before[0]
+    #     date_before[-1] = day_before[1]
+    #     return "".join(date_before)
 
     def testCheckingDate(self):
         print("TESTING CHECKING DATE\n")
-        after = self.create_date_after(self.end_date)
-        before = self.create_date_before(self.end_date)
+        # after = self.create_date_after(self.end_date)
+        # before = self.create_date_before(self.end_date)
         self.assertEqual(bot_events_commands.check_date(self.end_date), 0)
-        self.assertEqual(bot_events_commands.check_date(after), 1)
-        self.assertEqual(bot_events_commands.check_date(before), -1)
+        self.assertEqual(bot_events_commands.check_date(self.day_after_str), 1)
+        self.assertEqual(bot_events_commands.check_date(self.day_before_str), -1)
 
 
 if __name__ == '__main__':

@@ -12,6 +12,14 @@ from slack_sdk import WebClient
 from slackeventsapi import SlackEventAdapter
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
+from datetime import date
+from datetime import datetime
+import schedule
+import time
+# Firebase related imports
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import db
 
 # Loads the tokens from the ".env" file, which are set up as environment 
 # variables. Done to prevent security risks related to revealing the bot 
@@ -50,6 +58,21 @@ try:
     token = auth_test_payload["team_id"]
 except:
     pass
+
+'''
+Firebase related initializers
+Note: need to put the JSON file in the same directory as this file
+'''
+# Fetch the service account key JSON file contents
+directory = os.getcwd()
+cred = credentials.Certificate(directory + '/slackbot-software-firebase-adminsdk-xxfr0-f706556aac.json')
+
+# Initialize the app with a service account, granting admin privileges
+# firebase_admin.initialize_app(cred, {
+#     'databaseURL': 'https://slackbot-software-default-rtdb.firebaseio.com/'
+# })
+
+ref = db.reference('channels')
 
 """
 Checks if the payload is valid (i.e. has all the fields that we need for processing).
@@ -275,24 +298,100 @@ def handle_disable_mood_messages_invocation(payload):
     #    mood_messages_bot.disable_mood_messages(payload) 
     return Response(status=200)
 
+#Checks whether we have reached the end date of the channel
+#if we did, returns 0, if not return -1, if we're 1 day after the end_date, return 1
 def check_date(end_date):
-    #check if today's date is equal to the end_date
-    #if it is, return 0, if not return -1, if we're 1 day after the end_date, return 1
-    return 0
+    today = date.today()
+    ending_date = datetime.strptime(end_date, "%m-%d-%Y").date()
+    day_after = ending_date + datetime.timedelta(days=1)
+    if today == ending_date:
+        return 0
+    elif today == day_after:
+        return 1
+    else:
+        return -1
 
-def archive_channel(): #will be implemented with asyncio, being called periodically (every ~24h)
-    end_date = "1/1/1" #date will be pulled from firebase
+#Sends a message to the channel asking people to vote for or against archiving the channel
+def send_poll_msg(channel_id, text):
+    msg_rv = web_client.chat_postMessage(channel=channel_id, text=text)
+    if (not msg_rv["ok"]):
+            print(msg_rv["error"])
+            return Response(status=400)    
+    return msg_rv
+
+#Checks poll results by traversing through the database and recording
+#user responses (Y/N or X)
+def check_poll_results(channel_id):
+    json_dict = ref.get()
+    channel_users = json_dict[channel_id]['users']
+    total_users = len(channel_users)
+    y_count = 0
+    n_count = 0
+    for key in channel_users:
+        if (channel_users[key] == 'Y'):
+            y_count += 1
+        elif (channel_users[key] == 'N'):
+            n_count += 1
+    if (y_count > total_users / 2):
+        return 1
+    else:
+        return 0
+
+#This function is called every 24hours to check if today is the end date
+#If we have reached the end date, it sends out a message to the chat asking users to vote
+#for or against archiving the channel.
+#The next day it counts up the votes and either archives the channel or keeps it.
+def archive_channel(channel_id): 
+    json_dict = ref.get()
+    end_date = json_dict[channel_id]['end_date'] 
     if check_date(end_date) == 0:
-        #send a poll to the channel asking whether members want to delete the group
-        pass
+        #Send a poll to the channel asking whether members want to delete the group
+        #Get channel members and add them to the database:
+        members_rv = web_client.app.client.conversations_members(channel=channel_id)
+        if (not members_rv["ok"]):
+            print(members_rv["error"])
+            return Response(status=400)
+        members_list = members_rv['members']
+        members_dict = {}
+        for member in members_list:
+            members_dict[member] = 'X'
+        channel_ref = ref.child(channel_id)
+        channel_ref.set({
+            'end_date': end_date,
+            'users': members_dict
+        })
+        #Send message to the chat
+        msg_text = "Last day of class! If you are in favor of archiving this channel, message me with the command `/vote YorN` (for example, `/vote Y` or `/vote N`). I will count up the votes at the end of the day!"
+        return send_poll_msg(channel_id, msg_text)
     elif check_date(end_date) == 1:
-        #look at the results of the poll
-        #if the majority are for, archive the channel
-        #otherwise do nothing, keep the channel
-        pass
-    
+        if check_poll_results(channel_id) == 1:
+            archive_rv = web_client.conversations_archive(channel=channel_id) 
+            if (not archive_rv["ok"]):
+                print(archive_rv["error"])
+                return Response(status=400) 
+        else:
+            pass
+
+#Updates the list of channels in the workspace and calls archive_channel for each channel
+def check_channels_end_dates():
+    rv = web_client.conversations_list()
+    if (not rv["ok"]):
+        print(rv["error"])
+        return Response(status=400) 
+    channels = rv['channels']
+    channel_id_list = []
+    for channel in channels:
+        if "is_channel" in channel and channel['is_channel']: 
+            channel_id_list.append(channel['id'])
+    for channel in channel_id_list:
+        archive_channel(channel)
+
+schedule.every().day.at("00:00").do(check_channels_end_dates())
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True)
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
     
