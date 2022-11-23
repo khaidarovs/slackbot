@@ -17,6 +17,8 @@ slack_event_adapter = SlackEventAdapter(os.environ["SIGNING_SECRET"], "/slack/ev
 
 web_client = WebClient(token=os.environ["BOT_TOKEN"])
 
+TEST_USER_ID = 'T3sTID'
+
 # database to store any conversations information
 conversations_store = {}
 
@@ -32,8 +34,8 @@ def fetch_conversations():
     channels = []
     try:
         # Call the conversations.list method using the WebClient
-        result = web_client.conversations_list(types="public_channel, private_channel", 
-                                               limit=9999)
+        result = web_client.conversations_list(types="public_channel,private_channel", 
+                                               limit=999)
         channels = save_conversations(result["channels"])
     except SlackApiError as e:
         logger.error("Error fetching conversations: {}".format(e))
@@ -59,7 +61,6 @@ def save_conversations(conversations):
         conversation_id = conversation["id"]
         channels.append([conversation["id"], conversation["name"]])
         # Store the entire conversation object
-        # (you may not need all of the info)
         conversations_store[conversation_id] = conversation
     return channels
 
@@ -78,7 +79,7 @@ def welcome_new_user(payload):
     '''
     event = payload.get('event', {})
     channel_name = get_channel_name(event.get('channel'))
-    welcome_text = "Welcome to StudyRoom! To join a class, message me with the command `/join_class SUBJ-#####` (for example, `/join_class CMSC-22001), and I'll add you the study group."
+    welcome_text = "Welcome to StudyRoom! To join a class, message me with the command `/join_class SUBJ-##### MONTH-DAY-YEAR` (for example, `/join_class CMSC-22001 12-10-22), and I'll add you the study group."
     
     if(channel_name == 'general'):
         return send_im_message(event.get('user'), welcome_text)
@@ -139,8 +140,23 @@ def send_im_message(userid, text):
         Output (object): Success response containing channel and message text, or 
                          SlackApiError on failure
     '''
+    #payload for testing
+    if userid == TEST_USER_ID:
+        rv = {
+            "ok": True,
+            "channel": "C123456",
+            "ts": "1503435956.000247",
+            "message": {
+                "text": text,
+                "username": userid,
+                "bot_id": "B123456",
+                "type": "message",
+                "subtype": "bot_message",
+                "ts": "1503435956.000247"
+            }
+        }
+        return rv
 
-    channel_id = ""
     try:
         rv = web_client.chat_postMessage(channel=userid, text=text)
     except SlackApiError as e:
@@ -195,13 +211,36 @@ def handle_onboarding(class_name, user_id):
         logger.error("Error finding channel_id: id not found")
         return "id for channel " + name_normalized + " not found"
 
-    rv = web_client.conversations_invite(channel=channel_id, users=user_id)
+    #payload for testing
+    if user_id == TEST_USER_ID:
+        rv = {
+            "ok": True,
+            "channel": {
+                "id": channel_id,
+                "name": "general",
+                "is_channel": True,
+                "is_group": False,
+                "is_im": False,
+                "created": 1449252889,
+                "creator": "W012A3BCD",
+                "is_archived": False,
+                "is_general": True,
+                "unlinked": 0,
+                "name_normalized": "general",
+                "is_read_only": False,
+                "is_member": True,
+                "is_private": False,
+                "is_mpim": False,
+            }
+        }
+    else:
+        rv = web_client.conversations_invite(channel=channel_id, users=user_id)
+    
     return rv
 
 # web_client.chat_postMessage(channel='#general', text='Hello World!')
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":
     bot_app.run(debug=True, port=3000)
-
 
 

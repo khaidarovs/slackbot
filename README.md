@@ -85,20 +85,27 @@ Functionality:
 - `welcome_new_user(payload)`: Instructs the user on how to join a class when they first join the workspace. Returns a Slack API generated success message on success, and False otherwise.
 - `handle_onboarding(class_name, user_id)`: Adds the given student to the given class channel, creating the channel if it doesn't already exist. Returns an object with the channel information on success, and a Slack API generated error otherwise.
 - `check_channels(class_name)`: Verifies whether a class channel exists within the workspace, returning True if it does and False otherwise.
+- `normalize_channel_name(channel_name)`: Converts the name of a class channel (in the format XXXX-#####) to the proper slack format (includes only lowercase letters, numbers, and a hyphen)
+- `get_channel_name(channel_id)`: Returns the name of the channel with the given channel ID, or none if the channel doesn't exist.
+- `get_channel_id(name_normalized)`: Returns the ID of the channel with the given name.
+- `send_im_message(userid, text)`: Sends a direct message to the user with the given user id.
 
-We were able to run all the tests for our functions with no issue initially. but we later realized that our tests were contingent on having an active user in the space. In the next iteration, we will find a workaround for this issue.
+### Onboarding Changes (4.B)
+1. Fix `test_handle_onboarding()`
+-We created a global test_user_id such that in `handle_onboarding()`, the function will detect when the test_user_id is the input and return a custom payload so that no actual call to the API is made. We also added the custom payload that lives in `handle_onboarding()`.
 
-### Onboarding Test Changes (3.B)
-We realized that the tests utilize events operating in the workspace we created; thus, we had to revamp them a bit to get them to work properly.
+2. Add date input to welcome message
+-We added further instruction in the welcome message to accomodate for the change in the slash command where the end date will follow the class name
 
-`test_welcome_new_user()`:
-- We realized that the previous tests for `welcome_new_user()` wouldn't have worked, so we created a helper function to simulate different payloads, and used this to simulate a user joining a non-general and general channel.
+### Onboarding Test Changes (4.B)
+- Added `test_user_id` for testing function that need to make API calls but can't due to Slack's limitations thus acts as a switch for returning custom payloads in the functions instead of making the API calls
+- Changed `new_class` and `existing_class` names as they were causing duplicate errors in our workspace  
+- Reduced payload complexity in a couple instances
 
-`test_handle_onboarding()`:
-- Instead of trying to fake a payload for the new and existing channels, we use the Slack API to create channels in the workspace, verify if a channel does/doesn't exist, and test whether or not a user is properly added to a channel. We also make use of the Slack API to remove users from channels prior to running the tests, to avoid unpredictable behavior.
-
-`test_check_channel()`:
-- We moved the code for creating the existing channel into the setUp() function, since multiple test make use of that class.
+### Acceptance Testing
+Within the workspace:
+- Execute the command `/join_class cmsc-22002 12-11-22` to be added to an already existing class channel.
+- Execute the command `/join_class bios-12345 03-12-24` to be added to a non-existing class channel.
 
 # Activity Warning Branch - Matt and Maya G
 ### Running the tests
