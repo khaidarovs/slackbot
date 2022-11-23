@@ -11,6 +11,7 @@ from slackeventsapi import SlackEventAdapter
 import firebase_admin
 from firebase_admin import credentials, db
 
+
 # Load the tokens from the ".env" file, which are set up as environment variables.
 # You'll need the signing secret and bot token from the Slack developer console
 # for a workspace, which you put in a file you make called ".env". It prevents a

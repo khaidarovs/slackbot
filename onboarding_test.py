@@ -8,7 +8,7 @@ class TestOnboarding(unittest.TestCase):
         self.general_join_event = {
             "type": "member_joined_channel",
             "user": self.test_user_id,
-            "channel": get_channel_id("general"),
+            "channel": "U123456", #get_channel_id("general"),
             "channel_type": "C",
             "team": "T061EG9R6",
             "inviter": "U123456789"
@@ -17,7 +17,7 @@ class TestOnboarding(unittest.TestCase):
         self.non_general_join_event = {
             "type": "member_joined_channel",
             "user": self.test_user_id,
-            "channel": get_channel_id("random"),
+            "channel": "U56789", #get_channel_id("random"),
             "channel_type": "C",
             "team": "T061EG9R6",
             "inviter": "U123456789"
