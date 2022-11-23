@@ -60,6 +60,15 @@ Testing changes:
 - We plan to change the storage method to Firebase in the near future.
 - Additionally, we intend to add alternate formats/features for meet times and include reminders for further versitility.
 
+### Onboarding Test Changes (4.A)
+- Firebase implimentation provides a more consistent and secure database. Test cases have been adjusted to match the new storage method.
+- Development cycle slightly slowed this iteration due to developer sickness. We have yet to impliment a date-time system consistent throughout the project.
+
+## Future Plans
+- We plan to add a function that automatically calls the `in_five` function at set intervals, activated after bot becomes online.
+- Create a standard date-time system for the bot.
+- If time permits, reactions can bping attendees for each meeting.
+
 # Onboarding (Sabine and Grace)
 Functionality:
 - `welcome_new_user(payload)`: Instructs the user on how to join a class when they first join the workspace. Returns a Slack API generated success message on success, and False otherwise.
