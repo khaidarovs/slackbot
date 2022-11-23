@@ -13,6 +13,40 @@ or
 
 `python3 -m unittest discover`
 
+# Handling Events and Slash Commands Feature (Iteration 2) - Sanzhar and Michael
+
+## Functionality:
+```
+- check_valid_event_payload(payload, team_id, token)
+- check_valid_slash_command_payload(payload, team_id, token)
+- parse_payload(payload)
+- handle_message_event(payload)
+- handle_workspace_channels(payload)
+- check_id(payload, bot_id)
+- handle_disable_activity_warnings_invocation(payload)
+- handle_set_activity_warning_threshold_invocation(payload)
+- handle_disable_mood_messages_invocation(payload)
+- handle_join_class_invocation(payload)
+- handle_meetup_invocation(payload)
+- is_time_format_valid
+- handle_slash_command()
+New Functionality (4.B)
+- check_date(end_date)
+- send_poll_msg(channel_id, text)
+- check_poll_results(channel_id)
+- archive_channel(channel_id)
+- check_channels_end_dates()
+```
+
+## Handle Events Changes (4.B)
+Added the functionality for storing the class end date in Firebase, and then checking if today is that date every 24h. In case today is that date, we send out a poll into the channel where users vote "Y" or "N" in favor of archiving the channel. The next day we make a decision based on the number of votes. 
+
+## Handle Events Test Changes (4.B)
+We updated the tests for check_date as well as a few minor updates to other tests. You can find more details about other changes below.
+
+## Acceptance Testing
+- In the workspace, head to "Add Channel" -> "Create new channel". Name the channel and leave it public. Since the channel was not created by the bot, you should see that the channel was not even created. To verify, go to "unread messages" from SlackBot, which should say that the bot has archived your channel.
+
 ## Changes from Iteration 1 (Milestone 4A)
 
 Main outlined features were implemented, with the following function changes. 
@@ -27,23 +61,7 @@ Testing changes:
 - Removed compute_time_format tests 
 - Wrote testing for the archiving a channel at a requested date feature. 
 
-# Handling Events and Slash Commands Feature (Iteration 1) - Sanzhar and Michael
-
-Compared to the iteration 1 design document, we largely followed the functions outlined in the handling slash command and events feature. We fleshed out the handle_slash_command function more, by having the function branch off into intermediate handling functions, for slash commands that require parameters. The idea is handle_slash_command is the first function called whenever a slash command is invoked. From there is directly handles calling the slash command implementation functions written in the other features, for slash commands that do not have parameters. We also thought that handle_slash_command should also handle defective payload information, since we are relying on Slack to provide us non-malformed data in their POST requests.
-
-For handle_message_event we created 2 helper functions that check if the payload is valid (has all the required fields) and the other one that parses the payload and returns a dictionary with only the useful information, that is later passed on to functions from other features. We test both helper functions in test.py. For handle_workspace_channels we created a helper function that checks if the new channel that was created was created by the bot or by a person user. In the latter case, the bot would delete the channel by making a relevant API call. For now, we just test the functionality of check_id in test.py. 
-
-These tests are unit tests for the "Command Handling" functionality of the Slack Bot. This includes the following functions:
-```
-- check_valid_event_payload(payload, team_id, token)
-- check_valid_slash_command_payload(payload, team_id, token)
-- parse_payload(payload)
-- check_id(payload, bot_id)
-- handle_disable_activity_warnings_invocation(payload)
-- handle_set_activity_warning_threshold_invocation(payload)
-- handle_disable_mood_messages_invocation(payload)
-- handle_join_class_invocation(payload)
-- handle_meetup_invocation(payload)
-- is_time_format_valid
-- handle_slash_command()
-```
+## Things to do
+- Fix potential bugs related to parsing different types of payloads
+- Finish integrating the code 
+- Fix minor database bugs
