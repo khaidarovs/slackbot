@@ -92,6 +92,7 @@ def summarize_conversation(self):
         conversation_history = retval["messages"]
         n_msgs = len(conversation_history)
     # Summarize the messages and send the summary
+    msg_sent = False
     if n_msgs > 0:
         parsed_msg = parse_messages(conversation_history)
         summary = summary_model(parsed_msg)
