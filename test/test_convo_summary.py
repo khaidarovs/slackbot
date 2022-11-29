@@ -25,7 +25,7 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         "hrs":5
         }
         self.payload = input
-        n_msgs, msg_sent = summarize_conversation(self)
+        n_msgs, msg_sent = summarize_conversation(self.payload)
         self.assertEqual(n_msgs, 0)
         self.assertFalse(msg_sent)
 
@@ -38,19 +38,19 @@ class Test_Slash_Command_Activity_Warnings(unittest.TestCase):
         "token":"test_token_1",
         "channel_id":"CTEST1",
         "dummy_messages":[
-            {"I missed class today. Can somebody explain the observer pattern please?"},
-            {"Sure, I can explain. It may be easier if we discuss this over the phone"},
-            {"OK. Let's meet up at 7pm today"},
-            {"I can't make 7pm, can we do later?"},
-            {"Sure, let's meet at 9pm tonight"},
-            {"Sounds good, do we want to discuss anything else?"},
-            {"I wanted to talk also review the interpretor pattern."},
-            {"Ok cool. The interpretor pattern is also confusing for me"}
+            {"text": "I missed class today. Can somebody explain the observer pattern please?"},
+            {"text": "Sure, I can explain. It may be easier if we discuss this over the phone"},
+            {"text": "OK. Let's meet up at 7pm today"},
+            {"text": "I can't make 7pm, can we do later?"},
+            {"text": "Sure, let's meet at 9pm tonight"},
+            {"text": "Sounds good, do we want to discuss anything else?"},
+            {"text": "I wanted to talk also review the interpretor pattern."},
+            {"text": "Ok cool. The interpretor pattern is also confusing for me"}
         ],
         "hrs": 5
         }
         self.payload = input
-        n_msgs, msg_sent = summarize_conversation(self)
+        n_msgs, msg_sent = summarize_conversation(self.payload)
         self.assertEqual(n_msgs, len(input.get('dummy_messages')))
         self.assertTrue(msg_sent)
 

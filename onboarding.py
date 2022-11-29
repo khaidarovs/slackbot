@@ -66,7 +66,7 @@ def save_conversations(conversations):
 
 
 #member joined channel event listener
-@slack_event_adapter.on('member_joined_channel')
+#@slack_event_adapter.on('member_joined_channel')
 def welcome_new_user(payload):
     '''
         Instructs the user on how to use StudyGroup when they first join 

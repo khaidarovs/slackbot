@@ -5,6 +5,7 @@ import time
 import math
 import asyncio
 import re
+from datetime import date, datetime, timedelta
 from slack import WebClient
 from flask import Flask
 from slackeventsapi import SlackEventAdapter
@@ -187,6 +188,44 @@ async def delayedMessage(message, location, delay):
 # sends a message
 def sendMessage(message, location):
     web_client.chat_postMessage(channel=location, text=message)
+
+# Prepare messages to be scheduled for the event
+# return true if successful and false if unsuccessful.
+# At the moment this code sends out scheduled messages 
+# without accounting for updating meetup events. 
+def handle_message_scheduling(message, channel_id, location, ts):
+    '''
+    UNACCOUNTED CASE: updating a schedule message event
+    Potential idea: Here, using the channel_id check firebase for if there is an existing scheduled message event that has the same location and time parameters as the one requested, and perhaps if it was scheduled recently
+    If you want you could also sweep through and delete entries based on if the time of that scheduled event has past or not.
+    In firebase it should be stored something like {"channel_id": {"schedule_ids": [{"scheduled_message_id_1": {"time_scheduled": some unix time, "ts": 1000, "location": "Zoom"}]}} 
+    channel_id, schedule_rv["scheduled_message_id"], time.time(), location, ts, would be the entries stored
+    '''
+    '''
+    If you find that there are existing scheduled message events in the channel that require an updating to this new requested event,
+    get all of the "scheduled_ids" messages and delete those scheduled messages 
+    (web_client.chat_deleteScheduledMessage(channel=channel_id, scheduled_message_id="the_message_id that you got from firebase")).
+    Now you can run the rest of the code below 
+    '''
+    sendMessage(message, channel_id) # send message immediately confirming schedule
+    threshold_ts = 300 # 5 minutes
+    if ts > threshold_ts:  
+        # currently if requested wait time > 5 minutes, then schedule a messages at time of as well
+        meet_now_message = "<!channel> meet now"
+        if location != "":
+            meet_now_message = meet_now_message + " (location is " + location + ")"
+        # message scheduling at requested time set up
+        time_of_meet = datetime.now() + timedelta(seconds=ts) 
+        schedule_at_meet_rv = web_client.chat_scheduleMessage(channel=channel_id, text=meet_now_message, post_at=(int)(time_of_meet.timestamp()))
+        if (not schedule_at_meet_rv["ok"]):
+            print(schedule_at_meet_rv["error"])
+            return False
+        '''
+        Here you would store the necessary information in firebase: channel_id, schedule_rv["scheduled_message_id"], time.time(), location, ts
+        store schedule_at_meet_rv["scheduled_message_id"] and schedule_before_rv["scheduled_message_id"] in firebase, associated with the channel, in order to enable updating through deleting 
+        ex. in firebase check if ref.child(payload["channel_id"]).child(schedule_rv["scheduled_message_id"]) exists 
+        '''
+    return True
 
 # Allows us to set up a webpage with the script, which enables testing using tools like ngrok.
 if __name__ == "__main__":

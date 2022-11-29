@@ -86,8 +86,7 @@ def enable_activity_warnings(payload):
         "blocks":cmd_output
     }
     if not is_test: # From Slack, not from Tests
-        retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
-
+        retval = web_client.chat_postEphemeral(channel=msg_construct["channel"], user=msg_construct["user"], text=msg_construct["text"], blocks=cmd_output["blocks"])
     activity_warning_vars_ref.update({
         'activity_warnings_enabled':True
     })
@@ -147,7 +146,7 @@ def disable_activity_warnings(payload):
         "blocks":cmd_output
     }
     if not is_test: # From Slack, not from Tests
-        retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
+        retval = web_client.chat_postEphemeral(channel=msg_construct["channel"], user=msg_construct["user"], text=msg_construct["text"], blocks=cmd_output["blocks"])
     return cmd_output
 
 def set_activity_warnings_threshold(payload):
@@ -182,7 +181,8 @@ def set_activity_warnings_threshold(payload):
         "blocks":cmd_output
     }
     if not is_test: # From Slack, not from Tests
-        retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
+        #retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
+        retval = web_client.chat_postEphemeral(channel=msg_construct["channel"], user=msg_construct["user"], text=fallback_msg, blocks=cmd_output["blocks"])
     # Set values
     activity_warning_vars_ref.update({
     'activity_warnings_threshold':int(payload["text"])
@@ -237,7 +237,8 @@ def set_activity_warnings_content(payload):
         "blocks":cmd_output
     }
     if not is_test: # From Slack, not from Tests
-        retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
+        #retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
+        retval = web_client.chat_postEphemeral(channel=msg_construct["channel"], user=msg_construct["user"], text=fallback_msg, blocks=cmd_output["blocks"])
     return cmd_output
 
 def check_activity(payload):
@@ -258,7 +259,8 @@ def check_activity(payload):
     if is_test:
         retval = {"messages":[{},{},{},{},{},{},{},{},{},{}]} # 10 msgs
     else:
-        retval = web_client.conversations_history(**history_query)
+        #retval = web_client.conversations_history(**history_query)
+        retval = web_client.conversations_history(channel=history_query["channel"], oldest=history_query["oldest"])
     conversation_history = retval["messages"]
     
     return len(conversation_history)
@@ -297,7 +299,8 @@ def send_activity_warning(payload):
     "blocks":cmd_output
     }
     if not is_test: # From Slack, not from Tests
-        retval = web_client.chat_postMessage(**msg_construct)
+        #retval = web_client.chat_postMessage(**msg_construct)
+        retval = web_client.chat_postMessage(channel=msg_construct["channel"], text=fallback_msg)
     return cmd_output
 
 def check_send_activity_warning(payload):

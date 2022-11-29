@@ -58,7 +58,7 @@ def summary_model(text):
 def parse_messages(messages):
     output_string = ''
     for i in range(len(messages)):
-        string = str(messages[i])
+        string = str(messages[i]["text"]) 
         new_str = re.sub("{'", '', string)
         final_str = re.sub("'}", ' ', new_str)
         final_str1 = re.sub('{"', '', final_str)
@@ -67,15 +67,14 @@ def parse_messages(messages):
     return output_string
 
 # Main function that calls the above two helper functions
-def summarize_conversation(self):
-    # Get dataa
-    payload = self.payload
-
+def summarize_conversation(payload):
     # First check if this is a test or not
     is_test = False
     if payload.get('token') == "test_token_1":
         is_test = True
     channel_id = payload.get('channel_id')
+    conversation_history = []
+    n_msgs = 0
     # Get the msgs
     if is_test:
         conversation_history = payload.get('dummy_messages')
@@ -88,7 +87,7 @@ def summarize_conversation(self):
         "oldest":time_6hrago
         # "limit":activity_warnings_threshold.get()
         }
-        retval = web_client.conversations_history(**history_query)
+        retval = web_client.conversations_history(channel=history_query["channel"], oldest=history_query["oldest"])
         conversation_history = retval["messages"]
         n_msgs = len(conversation_history)
     # Summarize the messages and send the summary
@@ -102,7 +101,8 @@ def summarize_conversation(self):
         "text": summary
         }
         if not is_test: # From Slack, not from Tests
-            retval = web_client.chat_postMessage(**msg_construct) 
+            #retval = web_client.chat_postMessage(**msg_construct)
+            retval = web_client.chat_postMessage(channel=msg_construct["channel"], text=msg_construct["text"]) 
         else:
             print(summary) # Visual debug if Test
         msg_sent = True

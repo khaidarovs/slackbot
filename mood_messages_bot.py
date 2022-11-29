@@ -17,7 +17,7 @@ def firebase_db_init(channel_id):
         # already exists in db
         return channelref
     # doesnt exist. So we init the vars
-    channelref.set({
+    ref.child(channel_id).set({
         'activity_warning_vars':{
             'activity_warnings_content':"Let's get more active!",
             'activity_warnings_downtime':"",
@@ -30,7 +30,7 @@ def firebase_db_init(channel_id):
             'mood_messages_enabled':False
         }
     })
-    return channelref
+    return ref.child(channel_id)
 
 # Functions we'd implement would be here.
 
@@ -66,7 +66,8 @@ def enable_mood_messages(payload):
         "blocks":cmd_output
     }
     if not is_test: # From Slack, not from Tests
-        retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
+        #retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
+        retval = web_client.chat_postEphemeral(channel=msg_construct["channel"], user=msg_construct["user"], text=fallback_msg, blocks=cmd_output["blocks"])
     mood_messages_vars_ref.update({
         'mood_messages_enabled':True
     })
@@ -125,7 +126,8 @@ def disable_mood_messages(payload):
         "blocks":cmd_output
     }
     if not is_test: # From Slack, not from Tests
-        retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
+        #retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
+        retval = web_client.chat_postEphemeral(channel=msg_construct["channel"], user=msg_construct["user"], text=fallback_msg, blocks=cmd_output["blocks"])
     return cmd_output
 
 def set_mood_messages_content(payload):
@@ -175,7 +177,8 @@ def set_mood_messages_content(payload):
         "blocks":cmd_output
     }
     if not is_test: # From Slack, not from Tests
-        retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
+        #retval = web_client.chat_postEphemeral(**msg_construct) # https://api.slack.com/methods/chat.postEphemeral
+        retval = web_client.chat_postEphemeral(channel=msg_construct["channel"], user=msg_construct["user"], text=fallback_msg, blocks=cmd_output["blocks"])
     return cmd_output
 
 #This function sends a message if the mood is negative (-1)
@@ -186,6 +189,7 @@ def send_mood_message(payload):
         is_test = True
     # Extract data from payload
     user_id = payload.get('user_id')
+    #channel_id = payload["event"]["channel"]
     channel_id = payload.get('channel_id')
     # Let's make sure that the Firebase DB has been initialized
     # Also, let's get the channel reference
@@ -211,8 +215,8 @@ def send_mood_message(payload):
     "blocks":cmd_output
     }
     if not is_test: # From Slack, not from Tests
-        retval = web_client.chat_postMessage(**msg_construct)
-
+        #retval = web_client.chat_postMessage(**msg_construct)
+        retval = web_client.chat_postMessage(channel=msg_construct["channel"], text=fallback_msg)
     return cmd_output
 
 #Takes in a dictionary representing information from a single message, and determines the
