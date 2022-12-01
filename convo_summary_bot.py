@@ -51,6 +51,9 @@ def summary_model(text):
     for sentence in sentences:
         if (sentence in sentence_value) and (sentence_value[sentence] > (1.2 * average)):
             summary += " " + sentence
+    if summary == "":
+        for sentence in sentences:
+            summary += sentence
     return summary
 
 # Helper function that parses a list of set objects (the output from 
