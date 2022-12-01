@@ -21,9 +21,15 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
 
-# For live demo purposes
-live_test = False # set to True for live testing 
-vote_test = False 
+# For live testing demo purposes
+check_channel_test = False # set to True for live testing check_channel
+'''
+For testing the voting to archive process:
+with vote_test true, you can run /trigger
+'''
+vote_test = True # set to true for live testing voting for archive
+vote_results_test = True # set to true for live testing voting results
+
 global_curr_time_voting = datetime.now(pytz.timezone('US/Central'))
 
 # Loads the tokens from the ".env" file, which are set up as environment 
@@ -72,11 +78,15 @@ Note: need to put the JSON file in the same directory as this file
 directory = os.getcwd()
 cred = credentials.Certificate(directory + '/slackbot-software-firebase-adminsdk-xxfr0-f706556aac.json')#'/slackbot-software-firebase-adminsdk-xxfr0-f706556aac.json')
 
-# Initialize the app with a service account, granting admin privileges
-votes_app = firebase_admin.initialize_app(cred, options={
-    'databaseURL': 'https://slackbot-software-default-rtdb.firebaseio.com/'}, 
-    name='slackbot-software-default-rtdb'
-)
+votes_app = None
+if 'slackbot-software-default-rtdb' not in firebase_admin._apps:
+    # Initialize the app with a service account, granting admin privileges
+    votes_app = firebase_admin.initialize_app(cred, options={
+        'databaseURL': 'https://slackbot-software-default-rtdb.firebaseio.com/'}, 
+        name='slackbot-software-default-rtdb'
+    )
+else:
+    votes_app = firebase_admin.get_app(name='slackbot-software-default-rtdb')
 
 ref = db.reference('channels', app=votes_app)
 
@@ -143,7 +153,7 @@ def handle_message_event(payload):
         handle_workspace_channels(payload) 
         onboarding.welcome_new_user(payload)
     info_dict = parse_payload(payload) 
-    if "text" in info_dict:
+    if "text" in info_dict and actual_bot_user_id != payload["event"]["user"]:
         mood_messages_bot.check_send_mood_message(info_dict, {"text": info_dict["text"]})
     return Response(status=200)
 
@@ -192,6 +202,8 @@ def check_valid_slash_command_payload(payload, team_id):
 # handle function for the command is called. 
 @bot_app.route('/slash-command', methods=['POST'])
 def handle_slash_command():
+    global vote_test
+    global vote_results_test
     payload = request.form.to_dict()
     if check_valid_slash_command_payload(payload, actual_team_id) == False:
         return Response(status=400)
@@ -238,6 +250,19 @@ def handle_slash_command():
             convo_summary_bot.summarize_conversation(payload)
     elif payload["command"] == "/help":
         resp = "Visit the README.md in https://github.com/khaidarovs/slackbot for slash command instructions and a general overview of the bot!"
+    elif payload["command"] == "/trigger_activity_warning": 
+        if payload["token"] != test_token:  
+            activity_warnings_bot.check_send_activity_warning({"token": payload["token"], "channel_id": payload["channel_id"]})
+    elif payload["command"] == "/trigger_voting":
+        vote_results_test = False
+        vote_test = True
+        if payload["token"] != test_token:
+            archive_channel(payload["channel_id"])
+    elif payload["command"] == "/trigger_check_vote_results":
+        vote_test = False
+        vote_results_test = True
+        if payload["token"] != test_token:
+            archive_channel(payload["channel_id"])
     return resp
 
 # handle_vote keeps track of voting for deciding whether to archive the channel or not. 
@@ -367,9 +392,10 @@ def handle_disable_activity_warnings_invocation(payload):
     elif is_time_format_valid(payload['text']) == False: # invalid time format requests
         return invalid_resp
     elif payload["token"] != test_token: # valid time format requests 
-        # convert time to days, since currently we only account for day inputs
-        future_time = timedelta(seconds=bot_meetup.meetup(payload["text"], payload))
-        payload["text"] = str(future_time.days) + "d"
+        if payload["text"].strip() != "":
+            # convert time to days, since currently we only account for day inputs
+            future_time = timedelta(seconds=bot_meetup.meetup(payload["text"], payload))
+            payload["text"] = str(future_time.days) + "d"
         activity_warnings_bot.disable_activity_warnings(payload) 
     return Response(status=200)
 
@@ -380,21 +406,32 @@ def handle_disable_mood_messages_invocation(payload):
     if payload['text'].strip() != "" and is_time_format_valid(payload['text'].strip()) == False: 
         return invalid_resp
     if payload["token"] != test_token:
-        future_time = timedelta(seconds=bot_meetup.meetup(payload["text"], payload))
-        payload["text"] = str(future_time.days) + "d"
+        if payload["text"].strip() != "":
+            future_time = timedelta(seconds=bot_meetup.meetup(payload["text"], payload))
+            payload["text"] = str(future_time.days) + "d"
         mood_messages_bot.disable_mood_messages(payload) 
     return Response(status=200)
 
 #Checks whether we have reached the end date of the channel
 #if we did, returns 0, if not return -1, if we're 1 day after the end_date, return 1
-def check_date(end_date):
-    global global_curr_time_voting
+def check_date(*end_date):
+    #global global_curr_time_voting
+    global vote_test
+    global vote_results_test
+    if len(end_date) > 1:
+        vote_test = False
+        vote_results_test = False
+    end_date = end_date[0]
     today = date.today()
     ending_date = datetime.strptime(end_date, "%m-%d-%Y").date()
     day_after = ending_date + timedelta(days=1)
-    curr_time = datetime.now(pytz.timezone('US/Central'))
-    #if curr_time.minute == global_curr_time_voting.minute + 2: # uncomment for live testing
+    #curr_time = datetime.now(pytz.timezone('US/Central'))
+    #if curr_time.minute == global_curr_time_voting.minute + 10: # uncomment for live testing
     #    return 1
+    if vote_test: 
+        return 0
+    if vote_results_test:
+        return 1
     if today == ending_date:
         return 0
     elif today == day_after:
@@ -434,7 +471,7 @@ def check_poll_results(channel_id):
 #The next day it counts up the votes and either archives the channel or keeps it.
 def archive_channel(channel_id): 
     global vote_test
-    global global_curr_time_voting
+    global vote_results_test
     json_dict = ref.get()
     if json_dict == None:
         return Response(status=200)
@@ -443,8 +480,8 @@ def archive_channel(channel_id):
         end_date = json_dict[channel_id]['end_date']
     else:
         return Response(status=200)
-    if check_date(end_date) == 0: # and not vote_test: # uncomment for live testing
-        global_curr_time_voting = datetime.now(pytz.timezone('US/Central'))
+    if check_date(end_date) == 0: 
+        #global_curr_time_voting = datetime.now(pytz.timezone('US/Central'))
         #Send a poll to the channel asking whether members want to delete the group
         #Get channel members and add them to the database:
         members_rv = web_client.conversations_members(channel=channel_id)
@@ -463,7 +500,8 @@ def archive_channel(channel_id):
         })
         #Send message to the chat
         msg_text = "Last day of class! If you are in favor of archiving this channel, message me with the command `/vote_archive YorN` (for example, `/vote_archive Y` or `/vote_archive N`). I will count up the votes at the end of the day!"
-        vote_test = True
+        #vote_test = False
+        #vote_results_test = False
         return send_poll_msg(channel_id, msg_text)
     elif check_date(end_date) == 1:
         if check_poll_results(channel_id) == 1:
@@ -474,13 +512,17 @@ def archive_channel(channel_id):
             ref.child(channel_id).delete()
         else:
             pass
+        vote_test = False
+        vote_results_test = False
 
 # Updates the list of channels in the workspace and calls archive_channel, 
 # check_send_activity_warning, and check_send_mood_message for each channel
 def check_channels():
+    global check_channel_test
     global vote_test
+    global vote_results_test 
     curr_time = datetime.now(pytz.timezone('US/Central'))
-    if curr_time.hour == 0 or live_test: # midnight US central time  
+    if (curr_time.hour == 0 and curr_time.minute == 0) or check_channel_test: # midnight US central time  
         rv = web_client.conversations_list(exclude_archived=True, types="public_channel,private_channel")
         if (not rv["ok"]):
             print(rv["error"])
@@ -491,6 +533,9 @@ def check_channels():
             if ("is_channel" in channel and channel['is_channel']) and ("is_general" in channel and channel['is_general'] == False) and channel["is_member"] == True: 
                 archive_channel(channel['id'])
                 sent_aw = activity_warnings_bot.check_send_activity_warning({"token":"not_test_token", "channel_id":channel["id"]})
+        check_channel_test = False # prevent from entering if statement every minute during live testing
+        vote_results_test = False
+        vote_test = False
 
 # failsafe function for in case the check channel process fails for some reason. 
 def onLoopError(failure):

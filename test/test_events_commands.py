@@ -279,13 +279,13 @@ class TestSlashCommandHandling(unittest.TestCase):
             return "Vote should be only be \"Y\" for yes, or \"N\" for no." 
         try: 
             end_date = mock_channel_voting_data['channels'][payload["channel_id"]]['end_date']  
-            if bot_events_commands.check_date(end_date) == 0: # Message was sent on the set end date. 
+            if bot_events_commands.check_date(end_date, "test") == 0: # Message was sent on the set end date. 
                 # user_id and channel_id fields are always in the payload at this point 
                 # in order to be valid payloads in the first place.
                 mock_channel_voting_data['channels'][payload['channel_id']]["users"][payload["user_id"]] = choice
                 return mock_channel_voting_data
             # Message was not sent on the end date. 
-            if bot_events_commands.check_date(end_date) == -1: 
+            if bot_events_commands.check_date(end_date, "test") == -1: 
                 return "Sorry! The voting period for voting to archive the channel has passed."
         except:
             # Voting hasn't been recorded in database yet. 
@@ -596,9 +596,9 @@ class TestCheckingDate(unittest.TestCase):
         print("TESTING CHECKING DATE\n")
         # after = self.create_date_after(self.end_date)
         # before = self.create_date_before(self.end_date)
-        self.assertEqual(bot_events_commands.check_date(self.end_date), 0)
-        self.assertEqual(bot_events_commands.check_date(self.day_before_str), 1)
-        self.assertEqual(bot_events_commands.check_date(self.day_after_str), -1)
+        self.assertEqual(bot_events_commands.check_date(self.end_date, "test"), 0)
+        self.assertEqual(bot_events_commands.check_date(self.day_before_str, "test"), 1)
+        self.assertEqual(bot_events_commands.check_date(self.day_after_str, "test"), -1)
 
 
 if __name__ == '__main__':
