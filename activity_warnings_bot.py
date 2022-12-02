@@ -258,11 +258,16 @@ def check_activity(payload):
     }
     if is_test:
         retval = {"messages":[{},{},{},{},{},{},{},{},{},{}]} # 10 msgs
+        conversation_history = retval["messages"]
     else:
         #retval = web_client.conversations_history(**history_query)
-        retval = web_client.conversations_history(channel=history_query["channel"], oldest=history_query["oldest"])
-    conversation_history = retval["messages"]
-    
+        retval = web_client.conversations_history(channel=history_query["channel"])#, oldest=history_query["oldest"])
+        conversation_history = retval["messages"]
+        filtered_conversations = []
+        for i in range(len(conversation_history)):
+            if float(conversation_history[i]["ts"]) >= time_1dayago:
+                filtered_conversations.append(conversation_history[i])
+        return len(filtered_conversations)
     return len(conversation_history)
 
 def send_activity_warning(payload):

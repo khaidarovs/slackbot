@@ -25,7 +25,9 @@ from firebase_admin import db
 check_channel_test = False # set to True for live testing check_channel
 '''
 For testing the voting to archive process:
-with vote_test true, you can run /trigger
+with vote_test true, you can run /trigger_voting and /trigger_activity_warning. 
+Note for /trigger_voting, make sure that you create a channel that has an end 
+date at today's date.
 '''
 vote_test = True # set to true for live testing voting for archive
 vote_results_test = True # set to true for live testing voting results
@@ -370,17 +372,20 @@ def handle_meetup_invocation(payload):
     location = ""
     if len(params) > 1:
         location = params[1]
-    ts = 0
-    if location != "":
-        ts = bot_meetup.meetup(params[0], payload, location) # payload["type"] gets updated
-    else:
-        ts = bot_meetup.meetup(params[0], payload) # payload["type"] gets updated
-    if ts >= 10368000: # Slack only be able to schedule a message up to 120 days into the future
-        return "Sorry! The date is too long into the future!"
-    if payload["token"] != test_token:
-        success = bot_meetup.handle_message_scheduling(message=payload["type"], channel_id=payload["channel_id"], location=location, ts=ts) 
-        if not success:
-            return Response(status=400)
+    try:
+        ts = 0
+        if location != "":
+            ts = bot_meetup.meetup(params[0], payload, location) # payload["type"] gets updated
+        else:
+            ts = bot_meetup.meetup(params[0], payload) # payload["type"] gets updated
+        if ts >= 10368000: # Slack only be able to schedule a message up to 120 days into the future
+            return "Sorry! The date is too long into the future!"
+        if payload["token"] != test_token:
+            success = bot_meetup.handle_message_scheduling(message=payload["type"], channel_id=payload["channel_id"], location=location, ts=ts) 
+            if not success:
+                return Response(status=400)
+    except:
+        return "Sorry! I couldn't understand the parameters you put for the command. Be sure for the time (1st parameter) you include nonnegative numbers. The input format should be <time>, <location (optional)>. Remember the comma!"
     return Response(status=200)
 
 # Determines if the parameter to /disable_activity_warnings{string downtime} is 
@@ -425,9 +430,6 @@ def check_date(*end_date):
     today = date.today()
     ending_date = datetime.strptime(end_date, "%m-%d-%Y").date()
     day_after = ending_date + timedelta(days=1)
-    #curr_time = datetime.now(pytz.timezone('US/Central'))
-    #if curr_time.minute == global_curr_time_voting.minute + 10: # uncomment for live testing
-    #    return 1
     if vote_test: 
         return 0
     if vote_results_test:

@@ -1,6 +1,6 @@
 # Import utils
 from iter2_activity_mood_convo_utils import *
-
+from bot_events_commands import actual_bot_user_id
 import nltk
 nltk.download("stopwords")
 nltk.download("punkt")
@@ -58,15 +58,32 @@ def summary_model(text):
 
 # Helper function that parses a list of set objects (the output from 
 # payload.get('dummy_messages')) to return a single string with all the messages 
-def parse_messages(messages):
+def parse_messages(messages, is_test):
     output_string = ''
     for i in range(len(messages)):
-        string = str(messages[i]["text"]) 
-        new_str = re.sub("{'", '', string)
-        final_str = re.sub("'}", ' ', new_str)
-        final_str1 = re.sub('{"', '', final_str)
-        final_str2 = re.sub('"}', ' ', final_str1)
-        output_string += final_str2
+        if is_test:
+            string = str(messages[i]["text"]) 
+            new_str = re.sub("{'", '', string)
+            final_str = re.sub("'}", ' ', new_str)
+            final_str1 = re.sub('{"', '', final_str)
+            final_str2 = re.sub('"}', ' ', final_str1)
+            output_string += final_str2
+            output_string += "\n"
+        elif messages[i]["user"] != actual_bot_user_id:
+            user_name = ""
+            user_rv = web_client.users_info(user = messages[i]["user"])
+            if not user_rv["ok"]:
+                print(user_rv["error"]) 
+                user_name = "A user says "
+            else:
+                user_name = user_rv["user"]["name"] + " says "
+            string = user_name + str(messages[i]["text"]) 
+            new_str = re.sub("{'", '', string)
+            final_str = re.sub("'}", ' ', new_str)
+            final_str1 = re.sub('{"', '', final_str)
+            final_str2 = re.sub('"}', ' ', final_str1)
+            output_string += final_str2
+            output_string += "\n"
     return output_string
 
 # Main function that calls the above two helper functions
@@ -90,13 +107,15 @@ def summarize_conversation(payload):
         "oldest":time_6hrago
         # "limit":activity_warnings_threshold.get()
         }
-        retval = web_client.conversations_history(channel=history_query["channel"], oldest=history_query["oldest"])
+        retval = web_client.conversations_history(channel=history_query["channel"], limit=10)#, oldest=history_query["oldest"])
         conversation_history = retval["messages"]
+        print("================Number of Messages Found by conversations_history===============")
+        print(len(conversation_history))
         n_msgs = len(conversation_history)
     # Summarize the messages and send the summary
     msg_sent = False
     if n_msgs > 0:
-        parsed_msg = parse_messages(conversation_history)
+        parsed_msg = parse_messages(conversation_history, is_test)
         summary = summary_model(parsed_msg)
         msg_construct = {
         "token":BOT_TOKEN,
@@ -109,6 +128,15 @@ def summarize_conversation(payload):
         else:
             print(summary) # Visual debug if Test
         msg_sent = True
+    elif not is_test:
+        text_msg = "No analyzable messages found at the moment. Please try again later."
+        cmd_output ={"blocks": [{
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": text_msg
+        }}]}
+        retval = web_client.chat_postEphemeral(channel=channel_id, user=payload["user_id"], text=text_msg, blocks=cmd_output["blocks"])
 
     return n_msgs, msg_sent
 
