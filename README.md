@@ -5,6 +5,38 @@ In order to run the tests for this branch:
 3. Run `pip install -r requirements.txt` or `pip3 install -r requirements.txt`to install the necessary requirements.
 4. Run the tests using the commands below: `python -m unittest discover` or `python3 -m unittest discover`.
 
+# Onboarding (Sabine and Grace)
+Every user should get a welcome message upon joining the workspace.
+**Important:** When executing commands, enter them in the #general channel. 
+
+## Joining a class
+To join a class, do `/join_class SUBJ-##### MM-DD-YYYY`
+- `SUBJ` is the four letter code for the class department (e.g. "CMSC", "SPAN")
+- `#####` is the 5 digit code for the class (e.g. `22001`, `10100`)
+- `MM-DD-YYYY` is the end date for the class in month-day-year format.
+
+### Examples to try:
+- `/join_class cmsc-27002 03-12-2022` should add you to the class channel for CMSC 27002, with a success message in #general.
+- `/join_class kReY-10300 05-28-2030` should add you to the class channel for KREY 10300.
+- `/join_class PHYS-14300 11-01-2059` should add you to the class channel for PHYS 14300.
+
+To explore error handling:
+- `/join_class SPAN-20200 12-02-1980` should give you an error message requesting a date in the future.
+- Try entering fewer than two parameters to `/join_class` to get an error on how to properly use the command.
+
+## Limitations
+- Currently, StudyRoom doesn't support joining channels for classes that have ended. If a class ends and you try to execute the `/join_class` command with its class code, you'll get an error.
+- The structure of channels is based on UChicago's class naming system; classes not in this format will not be recognized.
+
+## Implementation Details (onboarding.py):
+- `welcome_new_user(payload)`: Instructs the user on how to join a class when they first join the workspace. Returns a Slack API generated success message on success, and False otherwise.
+- `handle_onboarding(class_name, user_id)`: Adds the given student to the given class channel, creating the channel if it doesn't already exist. Returns an object with the channel information on success, and a Slack API generated error otherwise.
+- `check_channels(class_name)`: Verifies whether a class channel exists within the workspace, returning True if it does and False otherwise.
+- `normalize_channel_name(channel_name)`: Converts the name of a class channel (in the format XXXX-#####) to the proper slack format (includes only lowercase letters, numbers, and a hyphen)
+- `get_channel_name(channel_id)`: Returns the name of the channel with the given channel ID, or none if the channel doesn't exist.
+- `get_channel_id(name_normalized)`: Returns the ID of the channel with the given name.
+- `send_im_message(userid, text)`: Sends a direct message to the user with the given user id.
+
 # Handling Events and Slash Commands Feature (Iteration 2) - Sanzhar and Michael 
 
 # Live Testing 
@@ -87,33 +119,6 @@ Testing changes:
 - We plan to add a function that automatically calls the `in_five` function at set intervals, activated after bot becomes online.
 - Create a standard date-time system for the bot.
 - If time permits, reactions can bping attendees for each meeting.
-
-# Onboarding (Sabine and Grace)
-Functionality:
-- `welcome_new_user(payload)`: Instructs the user on how to join a class when they first join the workspace. Returns a Slack API generated success message on success, and False otherwise.
-- `handle_onboarding(class_name, user_id)`: Adds the given student to the given class channel, creating the channel if it doesn't already exist. Returns an object with the channel information on success, and a Slack API generated error otherwise.
-- `check_channels(class_name)`: Verifies whether a class channel exists within the workspace, returning True if it does and False otherwise.
-- `normalize_channel_name(channel_name)`: Converts the name of a class channel (in the format XXXX-#####) to the proper slack format (includes only lowercase letters, numbers, and a hyphen)
-- `get_channel_name(channel_id)`: Returns the name of the channel with the given channel ID, or none if the channel doesn't exist.
-- `get_channel_id(name_normalized)`: Returns the ID of the channel with the given name.
-- `send_im_message(userid, text)`: Sends a direct message to the user with the given user id.
-
-### Onboarding Changes (4.B)
-1. Fix `test_handle_onboarding()`
--We created a global test_user_id such that in `handle_onboarding()`, the function will detect when the test_user_id is the input and return a custom payload so that no actual call to the API is made. We also added the custom payload that lives in `handle_onboarding()`.
-
-2. Add date input to welcome message
--We added further instruction in the welcome message to accomodate for the change in the slash command where the end date will follow the class name
-
-### Onboarding Test Changes (4.B)
-- Added `test_user_id` for testing function that need to make API calls but can't due to Slack's limitations thus acts as a switch for returning custom payloads in the functions instead of making the API calls
-- Changed `new_class` and `existing_class` names as they were causing duplicate errors in our workspace  
-- Reduced payload complexity in a couple instances
-
-### Acceptance Testing
-Within the workspace:
-- Execute the command `/join_class cmsc-22002 12-11-22` to be added to an already existing class channel.
-- Execute the command `/join_class bios-12345 03-12-24` to be added to a non-existing class channel.
 
 # ITER2 - Activity Warnings, Conversation Summary, and Mood Messages - Matt and Maya G
 ## Activity Warnings
