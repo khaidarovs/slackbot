@@ -148,7 +148,7 @@ time as opposed to fixed 6 hour conversation history period
 ## Mood Messages
 This iteration finalized the mood messages feature
 This encompasses the following<br>
-1. Making sure send message is only implemented when the mood is negative
+1. Making sure send_message is only implemented when the mood is negative. For usability purposes, we are not sending a message when the NLP model classifies a message as positive or neutral. This has a tradeoff: It might be helpful to know what the NLP model is predicting the mood to be in a case where the NLP mood prediction is different from what the user intended it to be. This being said, the Sentiment Analyzer model in python's NLTK package is proven to have a high accuracy (90%+ on testing sets). 
 2. Scheduling messages to send
 3. Firebase support for multiple channels <br>
 Unit tests for all three of these features have been added. However, there are 
