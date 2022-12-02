@@ -102,7 +102,7 @@ Testing changes:
 # Meetup Feature - Maya Hall and Jason Huang:
 - `meetup`, adds a log to the database with the meeting timestamp, location, message. You can enter a time in the form of "XsXmXhXd" where X are different integers. Meetup converts string explaination of a time to seconds.
 - `wait_message`, will stores a combination of a location, a message, and a time as a varaible into a database.
-- `in_five`, checks whether any events in the database occurs within the next five minutes. If so, a message will be sent after a delay. This command will automatically be called every five minutes while the bot is active.
+- `in_five`, checks whether any events in the database occurs within the next five minutes. If so, a message will be sent after a delay. This command will automatically be called every five minutes while the bot is active. This command is currently no longer needed.
 
 ## Meetup Test Changes
 - We realized that the previous tests for `in_five` pulled data from the wrong location. The test have been adjusted to pull information from the correct location designated in our code.
@@ -119,6 +119,13 @@ Testing changes:
 - We plan to add a function that automatically calls the `in_five` function at set intervals, activated after bot becomes online.
 - Create a standard date-time system for the bot.
 - If time permits, reactions can bping attendees for each meeting.
+
+## Scheduling Adjustment
+- Due to how `in_five` was changed in implimentation, so that reminders are set to a future date instead of being actively updated, the command was rendered obsolete.
+
+### Examples to try:
+- `/meetup 5m3s` This will create a reminder in 5 minutes 3 seconds from the current time.
+- `/meetup 5m3s, Zoom` This will also create a reminder in the same time, but specify the location as Zoom.
 
 # ITER2 - Activity Warnings, Conversation Summary, and Mood Messages - Matt and Maya G
 ## Activity Warnings
