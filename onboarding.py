@@ -1,4 +1,3 @@
-import json
 import os
 import logging as logger
 from dotenv import load_dotenv
@@ -8,15 +7,16 @@ from slackeventsapi import SlackEventAdapter
 from slack_sdk.errors import SlackApiError
 from pathlib import Path
 
+# Set-up code
 env_path = Path('.')/'.env'
 load_dotenv(dotenv_path = env_path)
 
 bot_app = Flask(__name__)
 
 slack_event_adapter = SlackEventAdapter(os.environ["SIGNING_SECRET"], "/slack/events", bot_app)
-
 web_client = WebClient(token=os.environ["BOT_TOKEN"])
 
+# Constant for testing user-interacting functions
 TEST_USER_ID = 'T3sTID'
 
 # database to store any conversations information
@@ -43,7 +43,6 @@ def fetch_conversations():
         return channels
 
 
-# Put conversations into the JavaScript object
 def save_conversations(conversations):
     '''
         Saves all the conversations in the workspace into the conversations_store.
@@ -66,7 +65,6 @@ def save_conversations(conversations):
 
 
 #member joined channel event listener
-#@slack_event_adapter.on('member_joined_channel')
 def welcome_new_user(payload):
     '''
         Instructs the user on how to use StudyGroup when they first join 
@@ -79,8 +77,9 @@ def welcome_new_user(payload):
     '''
     event = payload.get('event', {})
     channel_name = get_channel_name(event.get('channel'))
-    welcome_text = "Welcome to StudyRoom! To join a class, message me with the command `/join_class SUBJ-##### MONTH-DAY-YEAR` (for example, `/join_class CMSC-22001 12-10-22), and I'll add you the study group."
+    welcome_text = "Welcome to StudyRoom! You can communicate with me by typing commands into the #general channel.\nTo join a class, use the command `/join_class SUBJ-##### MONTH-DAY-YEAR` (for example, `/join_class CMSC-22001 12-10-2022), and I'll add you the study group.\nDo /help for command assistance."
     
+    # user only gets messaged when they join the general channel
     if(channel_name == 'general'):
         return send_im_message(event.get('user'), welcome_text)
     return False
@@ -195,6 +194,8 @@ def handle_onboarding(class_name, user_id):
     '''
     is_channel = check_channel(class_name)
     name_normalized = normalize_channel_name(class_name)
+
+    #create new channel if class channel doesn't exist, add to existing channel otherwise
     if not is_channel:
         try:
             new_channel = web_client.conversations_create(name=name_normalized, 
@@ -234,6 +235,7 @@ def handle_onboarding(class_name, user_id):
             }
         }
     else:
+        #invite user to join channel
         rv = web_client.conversations_invite(channel=channel_id, users=user_id)
     
     return rv
