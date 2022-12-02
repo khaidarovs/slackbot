@@ -25,7 +25,7 @@ To explore error handling:
 - Try entering fewer than two parameters to `/join_class` to get an error on how to properly use the command.
 
 ## Limitations
-- Currently, StudyRoom doesn't support joining channels for classes that have ended. If a class ends and you try to execute the `/join_class` command with its class code, you'll get an error.
+- Currently, StudyRoom doesn't support joining channels for classes that have ended (i.e., classes whose channels have been archived). If a class ends and you try to execute the `/join_class` command with its class code, you'll get an error.
 - The structure of channels is based on UChicago's class naming system; classes not in this format will not be recognized.
 
 ## Implementation Details (onboarding.py):
