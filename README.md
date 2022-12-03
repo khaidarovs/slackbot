@@ -167,7 +167,7 @@ Finally, all of the variables mentioned above for activity warnings and mood mes
 
 ## Convo Summary
 
-Conversation summary feature (done by Matt and Maya G.): Conversation summary is a triggered slash command that uses the NLTK python package and tokenization to process given messages in the past 6 hours and summarize them. Since this function assigns a value to each sentence, there may be a case where there is no significant value associated with specific messages, in which case, the function would return every message from the past 6 hours. 
+Conversation summary feature (done by Matt and Maya G.): Conversation summary is a triggered slash command that uses the NLTK python package and tokenization to process given messages in the past 6 hours and summarize them. Since this function assigns a value to each sentence, there may be a case where there is no significant value associated with specific messages, in which case, the function would return every message from the past 6 hours. Because the conversation summary will differ each time due to NLP, our two test cases check if there are 0 msgs in the past 6 hrs, or if there are >0 msgs, and test the correct behavior for each case
 
 The function is: 
 - `/summarize_conversation` - summarizes a conversation
