@@ -131,17 +131,20 @@ There are two ways you could test this feature:
 # Meetup Feature - Maya Hall and Jason Huang:
 
 ## Creating a meetup
-To create a meetup, do `/meetup #s#m#h#d, <location (optional)>`
+To create a meetup, do `/meetup #s#m#h#d, <location (optional)>`. The "s" "m" "h" and "d" are acceptable inputs for second, minute, hour, and day respectively. If no specific letter is used, 
 
 ## Examples to try:
 - `/meetup 5m3s` This will create a reminder in 5 minutes 3 seconds from the current time.
 - `/meetup 5m3s, Zoom` This will also create a reminder in the same time, but specify the location as Zoom.
-- `/meetup 10m, https://uchicago.zoom.us/j/20816624750?pwd=ZzNjZllJZkMwclBVZHpZNW8ycThrUT09` - this will create a meetup at the specified Zoom link in 10 minutes
+- `/meetup 10m, https://uchicago.zoom.us/j/20816624750?pwd=ZzNjZllJZkMwclBVZHpZNW8ycThrUT09` - this will create a meetup at the specified Zoom link in 10 minutes.
 
 ## Implementation Details
-- `meetup`- adds a log to the database with the meeting timestamp, location, message. You can enter a time in the form of "XsXmXhXd" where X are different integers. Meetup converts string explaination of a time to seconds.
-- `wait_message` - will stores a combination of a location, a message, and a time as a varaible into a database.
+- `meetup`- Adds a log to the database with the meeting timestamp, location, message. You can enter a time in the form of "XsXmXhXd" where X are different integers. Meetup converts string explaination of a time to seconds.
+- `wait_message` - This will stores a combination of a location, a message, and a time as a varaible into a database.
 - `in_five` - checks whether any events in the database occurs within the next five minutes. If so, a message will be sent after a delay. This command will automatically be called every five minutes while the bot is active. This command is currently no longer needed.
+
+## Limitations
+- Currently there is no 
 
 # Activity warnings, Mood messages & Conversation Summary (Matt & Maya G.): 
 
