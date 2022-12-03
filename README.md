@@ -76,6 +76,7 @@ To join a class, do `/join_class SUBJ-##### MM-DD-YYYY`
 To explore error handling:
 - `/join_class SPAN-20200 12-02-1980` should give you an error message requesting a date in the future.
 - Try entering fewer than two parameters to `/join_class` to get an error on how to properly use the command.
+- If you run in a joining an archived channel error text, that means the requested class has already been archived. Try to type another class name instead.
 
 ## Limitations
 - Currently, StudyRoom doesn't support joining channels for classes that have ended (i.e., classes whose channels have been archived). If a class ends and you try to execute the `/join_class` command with its class code, you'll get an error.
