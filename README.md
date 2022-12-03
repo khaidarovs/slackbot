@@ -14,7 +14,7 @@ https://join.slack.com/t/studyroomuchicago/shared_invite/zt-1kt9yjwxs-Rj_elYqVJ8
 
 Once you join the workspace, use the slash commands and acceptance tests outlined below to test the functionality of our bot. The slash commands are broken into 4 functionality categories: onboarding, meetup, activity warnings & mood messages, general & channel archiving. Please refer to each section below to find more details on how to use the slash commands and potential acceptance tests you could run.  
 
-# The complete set of slash commands available in the workspace:![image](https://user-images.githubusercontent.com/93730296/205425766-e6121c18-94e7-4b56-a356-e9899405ab72.png)
+# The complete set of slash commands available in the workspace:
 
 ## Onboarding:
 
@@ -77,7 +77,7 @@ To explore error handling:
 - `get_channel_id(name_normalized)`: Returns the ID of the channel with the given name.
 - `send_im_message(userid, text)`: Sends a direct message to the user with the given user id.
 
-# Handling Events and Slash Commands Feature (Iteration 2) - Sanzhar and Michael 
+# General & Archiving a Channel (Handling Events and Slash Commands Feature) - Sanzhar and Michael 
 
 - `/help` – use this slash command to get information about the bot as well as the available slash commands and functionality
 
