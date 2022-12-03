@@ -187,7 +187,8 @@ The function is:
 - `/disable_activity_warnings` - disables activity warnings indefinitely
 
 (MOOD)
-- `/enable_mood_messages` - enables mood messages indefinitely. Then, messages can be sent to the channel like normal, and if they are negative, the bot will send a message encouraging positive chat. 
+- `/enable_mood_messages` - enables mood messages indefinitely. 
+> user sends message to the channel, and if it is negative, the bot will send a message encouraging positive chat. 
 - `/enable_mood_messages` - disables mood messages indefinitely. 
 
 (CONVO)
