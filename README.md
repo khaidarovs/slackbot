@@ -22,7 +22,7 @@ Once you join the workspace, use the slash commands and acceptance tests outline
 
 ## Meetup:
 
-- `/meetup <time from now>, <location (optional)>`
+- `/meetup <four letter department code>-<five digit course code> <MM-DD-YYYY>`
 
 ## Activity warnings, Mood messages & Conversation Summary:
 
