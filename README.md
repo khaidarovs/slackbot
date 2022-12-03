@@ -148,11 +148,13 @@ To create a meetup, do `/meetup #s#m#h#d, <location (optional)>`. This will crea
 
 # Activity warnings, Mood messages & Conversation Summary (Matt & Maya G.): 
 
-The activity warnings and mood messages warnings features, have similar commands and functionality but serve different purposes. Specifically, both have enable and disable commands, and the disable commands can be specified for indefinite or definite timeframes. Both features can set message content, and can reset them to default. Activity warnings additionally have a feature which sets the threshold, determining whether an activity warning should be sent.
-    
-   At midnight, a function checks whether an activity message should be sent or not. Further, we can force-trigger this with a slash command.
-Mood messages are sent whenever a negative message is sent into the channel to encourage more positive conversation.
+The activity warnings and mood messages warnings features (done by Matt and Maya G.), have similar commands and functionality but serve different purposes. Specifically, both have enable and disable commands, and the disable commands can be specified for indefinite or definite timeframes. Both features can set message content, and can reset them to default. Activity warnings additionally have a feature which sets the threshold, determining whether an activity warning should be sent.
 
+At midnight, a function checks whether an activity message should be sent or not. Further, we can force-trigger this with a slash command.
+
+On the other hand, mood messages need not be force-triggered with a slash command as they are instantaneous. Once mood messages are enabled in a certain channel using the slash command, the mood of every message sent to the channel thereafter is analyzed using the Sentiment Analyzer model from the NLTK python package. In the case where the mood is negative, a message is sent to the channel encouraging positive chat. But in the case where the mood is either positive or neutral, no message is sent for usability purposes. Note: The only tradeoff here is that it might be useful for the user to know what the model is predicting the mood as in the case where the user’s intended mood doesn’t match the predicted mood, but given the high accuracy of the model, this scenario is unlikely.
+
+The functions are as follows:
 - `/enable_activity_warnings` - enables activity warnings indefinitely
 - `/disable_activity_warnings <downtime (optional)>` - disables activity warnings for a specified downtime, if none, then indefinite
 - `/set_activity_warning_threshold <threshold (optional)>` - sets threshold, if none, then reverts to default
@@ -164,9 +166,13 @@ Mood messages are sent whenever a negative message is sent into the channel to e
 
 Note: manually triggering activity warnings when they are disabled for a definite specified period of time decrements the downtime by 1 day. This is because, conventionally, activity warnings only are triggered daily. However for debugging purposes this is too long to wait.
 
+Finally, all of the variables mentioned above for activity warnings and mood messages are stored in firebase. Specifically, firebase has a separate entry for each channel that stores bool activity_warnings_enabled, int activity_warning_threshold, etc, allowing for multi-channel support. These variables are updated in real time and fetched from the database when needed.
 
 ## Convo Summary
-Conversation summary feature: Conversation summary is a triggered slash command that uses the NLTK python package and tokenization to process given messages in the past 6 hours and summarize them. Since this function assigns a value to each sentence, there may be a case where there is no significant value associated with specific messages, in which case, the function would return every message from the past 6 hours. 
+
+Conversation summary feature (done by Matt and Maya G.): Conversation summary is a triggered slash command that uses the NLTK python package and tokenization to process given messages in the past 6 hours and summarize them. Since this function assigns a value to each sentence, there may be a case where there is no significant value associated with specific messages, in which case, the function would return every message from the past 6 hours. 
+
+The function is:
 - `/summarize_conversation` - summarizes a conversation
 
 ## Use Examples
@@ -181,7 +187,9 @@ Conversation summary feature: Conversation summary is a triggered slash command 
 - `/disable_activity_warnings` - disables activity warnings indefinitely
 
 (MOOD)
+- `/enable_mood_messages` - enables mood messages indefinitely. Then, messages can be sent to the channel like normal, and if they are negative, the bot will send a message encouraging positive chat. 
+- `/enable_mood_messages` - disables mood messages indefinitely. 
 
 (CONVO)
 > user uploads their notes on class today
-- `/summarize_conversation` - summarizes the story in fewer sentences
+- `/summarize_conversation` - summarizes the notes in fewer sentences
