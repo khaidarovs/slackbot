@@ -25,17 +25,29 @@ Once you join the workspace, use the slash commands and acceptance tests outline
 
 - `/meetup <four letter department code>-<five digit course code> <MM-DD-YYYY>`
 
-## Activity warnings, Mood messages & Conversation Summary:
+# Activity warnings, Mood messages & Conversation Summary (Matt & Maya G.): 
 
-- `/enable_activity_warnings`
-- `/disable_activity_warnings <downtime (optional)>` 
-- `/set_activity_warning_threshold <threshold (optional)>`
-- `/set_activity_warning_content <content (optional)>`
-- `/set_mood_message_content <content (optional)>`
-- `/enable_mood_messages`
-- `/disable_mood_messages <downtime (optional)>`
-- `/summarize_conversation`
-- `/trigger_activity_warning`
+The activity warnings and mood messages warnings features, have similar commands and functionality but serve different purposes. Specifically, both have enable and disable commands, and the disable commands can be specified for indefinite or definite timeframes. Both features can set message content, and can reset them to default. Activity warnings additionally have a feature which sets the threshold, determining whether an activity warning should be sent.
+    
+    At midnight, a function checks whether an activity message should be sent or not. Further, we can force-trigger this with a slash command.
+Mood messages are sent whenever a negative message is sent into the channel to encourage more positive conversation.
+
+
+- `/enable_activity_warnings` - enables activity warnings indefinitely
+- `/disable_activity_warnings <downtime (optional)>` - disables activity warnings for a specified downtime, if none, then indefinite
+- `/set_activity_warning_threshold <threshold (optional)>` - sets threshold, if none, then reverts to default
+- `/set_activity_warning_content <content (optional)>` - sets content, if none, then reverts to default
+- `/set_mood_message_content <content (optional)>` - sets content, if none, then reverts to default
+- `/enable_mood_messages` - enables mood messages
+- `/disable_mood_messages <downtime (optional)>`- disables mood messages for a specified downtime, if none, then indefinite
+- `/trigger_activity_warning` - manually triggers the usual-daily activity warning
+
+Note: manually triggering activity warnings when they are disabled for a definite specified period of time decrements the downtime by 1 day. This is because, conventionally, activity warnings only are triggered daily. However for debugging purposes this is too long to wait.
+
+
+## Convo Summary
+(@MAYA ADD DESC HERE)
+- `/summarize_conversation` - summarizes a conversation
 
 ## General & Archiving a channel:
 
