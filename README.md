@@ -36,7 +36,7 @@ Once you join the workspace, use the slash commands and acceptance tests outline
 - `/summarize_conversation`
 - `/trigger_activity_warning`
 
-General & Archiving a channel:
+## General & Archiving a channel:
 
 - `/vote_archive <Y or N>`
 - `/help`
