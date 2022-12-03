@@ -29,7 +29,7 @@ Once you join the workspace, use the slash commands and acceptance tests outline
 
 The activity warnings and mood messages warnings features, have similar commands and functionality but serve different purposes. Specifically, both have enable and disable commands, and the disable commands can be specified for indefinite or definite timeframes. Both features can set message content, and can reset them to default. Activity warnings additionally have a feature which sets the threshold, determining whether an activity warning should be sent.
     
-    At midnight, a function checks whether an activity message should be sent or not. Further, we can force-trigger this with a slash command.
+   At midnight, a function checks whether an activity message should be sent or not. Further, we can force-trigger this with a slash command.
 Mood messages are sent whenever a negative message is sent into the channel to encourage more positive conversation.
 
 
