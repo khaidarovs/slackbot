@@ -5,6 +5,46 @@ In order to run the tests for this branch:
 3. Run `pip install -r requirements.txt` or `pip3 install -r requirements.txt`to install the necessary requirements.
 4. Run the tests using the commands below: `python -m unittest discover` or `python3 -m unittest discover`.
 
+# Installation Guide
+
+Use the following link to join our workspace: 
+```
+https://join.slack.com/t/studyroomuchicago/shared_invite/zt-1kt9yjwxs-Rj_elYqVJ8XPn3qthricnw
+```
+
+Once you join the workspace, use the slash commands and acceptance tests outlined below to test the functionality of our bot. The slash commands are broken into 4 functionality categories: onboarding, meetup, activity warnings & mood messages, general & channel archiving. Please refer to each section below to find more details on how to use the slash commands and potential acceptance tests you could run.  
+
+# The complete set of slash commands available in the workspace:![image](https://user-images.githubusercontent.com/93730296/205425766-e6121c18-94e7-4b56-a356-e9899405ab72.png)
+
+## Onboarding:
+
+- `/join_class SUBJ-##### MM-DD-YYYY`
+
+## Meetup:
+
+- `/meetup <time from now>, <location (optional)>`
+
+## Activity warnings, Mood messages & Conversation Summary:
+
+- `/enable_activity_warnings`
+- `/disable_activity_warnings <downtime (optional)>` 
+- `/set_activity_warning_threshold <number of messages>`
+- `/set_activity_warning_content <content (optional)>`
+- `/set_mood_message_content <content (optional)>`
+- `/enable_mood_messages`
+- `/disable_mood_messages <downtime (optional)>`
+- `/summarize_conversation`
+- `/trigger_activity_warning`
+
+General & Archiving a channel:
+
+- `/vote_archive <Y or N>`
+- `/help`
+- `/trigger_voting`
+- `/trigger_check_vote_results`
+	
+A more detailed explanation of the commands, as well as examples of potential acceptance tests can be found below. 
+
 # Onboarding (Sabine and Grace)
 Every user should get a welcome message upon joining the workspace.
 **Important:** When executing commands, enter them in the #general channel. 
@@ -39,65 +79,51 @@ To explore error handling:
 
 # Handling Events and Slash Commands Feature (Iteration 2) - Sanzhar and Michael 
 
-# Live Testing 
-1. Run `python bot_events_commands.py` or `python3 bot_events_commands.py` to run the events file. 
-2. After running the command you can find the port number in terminal (ie. "Running on http://127.0.0.1:<port number>"). 
-3. Have ngrok in the folder of the program and run the command "ngrok http <port number>" in the ngrok application.
-4. Go to the forwarding tab and copy the generated ngrok link. 
-5. In the Slack developer workspace console for "StudyRoom UChicago" (which you should have already been added as a collaborator), go to the Event Subscriptions tab and go to the Enable Events section. Input the ngrok link and then add the "/slack/events" endpoint at the end of that ngrok link. The link should be verified and work from there. 
-6. For slash commands head to each one of interest under the Slash Commands section of the developer workspace console, and add the "/slash-command" endpoint at the end of the ngrok link as well. Currently though slash commands aren't set up for acceptance tests at the moment, but for future live testing this would apply. 
+- `/help` – use this slash command to get information about the bot as well as the available slash commands and functionality
 
-## Functionality:
-```
-- check_valid_event_payload(payload, team_id, token)
-- check_valid_slash_command_payload(payload, team_id, token)
-- parse_payload(payload)
-- handle_message_event(payload)
-- handle_workspace_channels(payload)
-- check_id(payload, bot_id)
-- handle_disable_activity_warnings_invocation(payload)
-- handle_set_activity_warning_threshold_invocation(payload)
-- handle_disable_mood_messages_invocation(payload)
-- handle_join_class_invocation(payload)
-- handle_meetup_invocation(payload)
-- is_time_format_valid
-- handle_slash_command()
-New Functionality (4.B)
-- check_date(end_date)
-- send_poll_msg(channel_id, text)
-- check_poll_results(channel_id)
-- archive_channel(channel_id)
-- check_channels_end_dates()
-```
+## Archiving a channel:
 
-## Handle Events Changes (4.B)
-Added the functionality for storing the class end date in Firebase, and then checking if today is that date every 24h. In case today is that date, we send out a poll into the channel where users vote "Y" or "N" in favor of archiving the channel. The next day we make a decision based on the number of votes. 
+There are two ways you could test this feature:
+1. Follow the “Joining a class” logic outlined in the Onboarding section and set the end date to tomorrow (e.g., if you are testing on 12-3-2022, set it to 12-4-2022). At midnight on the end date, a poll message will be sent asking the users to vote in the channel using the `/vote_archive` slash command. Use examples: `/vote_archive Y` & `/vote_archive N`. At midnight of the next day, the bot will count up the votes and will archive the channel if more than half of the users voted Y.
 
-## Handle Events Test Changes (4.B)
-We updated the tests for check_date as well as a few minor updates to other tests. You can find more details about other changes below.
+2. For testing purposes we created a process that doesn’t require you to wait a whole day to test this functionality. Follow the “Joining a class” logic outlined in the Onboarding section and set the end date to today (e.g., if you are testing on 12-3-2022, set it to 12-3-2022). Use the slash command `/trigger_voting` (without any parameters), which will trigger the bot to send a message to the channel asking users to vote for or against archiving the channel. Use `/vote_archive` to vote. Use examples: `/vote_archive Y` & `/vote_archive N`. When all the users in the channel are done voting, use `/trigger_check_vote_results` to trigger the bot to count up the votes and make a decision – it will archive the channel if more than half of the users voted Y.
 
-## Acceptance Testing
-- In the workspace, head to "Add Channel" -> "Create new channel". Name the channel and leave it public. Since the channel was not created by the bot, you should see that the channel was not even created. To verify, go to "unread messages" from SlackBot, which should say that the bot has archived your channel. NOTE: the acceptance test for the slash commands may be currently impacted by this, since there is a chronological process that occurs with channel creation through onboarding onto classes, and eventually deleting said courses. 
+### Examples to try:
+-	Create a channel with 3 people (3 people should join it using the `/join_class` command) and set the end date to the date when you are testing it. Use `/trigger_voting` to send the poll message. Don’t vote and then use `/trigger_check_vote_results` – you should see that nothing happens to the channel.
+-	Do the same setup as in the example above, but this time 2 or more people should vote Y using the `/vote_archive` command. If you run `/trigger_check_vote_results` you should find that the bot archived the channel, which you should be notified about by the SlackBot bot. 
 
-## Changes from Iteration 1 (Milestone 4A)
+### Limitations:
+-	If new people are added to the channel after the poll message has been sent, their votes will not be counted 
 
-Main outlined features were implemented, with the following function changes. 
-- Began the process of integrating the project files by setting up or making the function calls outside of bot_events_commands.py, when handling slash commands and message events.
-- Modified the current process for bot monitoring of workspace channels, through manually looking for a channel creation event. This served an alternative solution to what we previously designed, due to live testing issues we ran into. 
-- Removed compute_time_format function in the bot_events_command file since other files handled that feature's intent.
-- Set up the implementation for the feature of archiving a channel at a requested date.
+### Additional acceptance tests:
+-	Our bot doesn’t allow users to create public channels. Test it by creating a public channel ("Add Channel" -> "Create new channel" in the workspace) – the bot should archive the channel immediately and you should be notified of it by the SlackBot Bot
 
-Testing changes:
-- Added more tests for test_check_valid_slash_command_payload, test_is_time_format_valid, test_invalid_handle_join_class_invocation, and test_check_valid_slash_command_payload. 
-- Modified TestHandlingWorkspace structure by testing a mock version of handle_workspace_channels and check_id.
-- Removed compute_time_format tests 
-- Wrote testing for the archiving a channel at a requested date feature. 
+### To explore error handling:
+-	Try voting something other than Y or N using `/vote_archive`. It should return an error message
+-	Using the first scenario outlined above, on the day before the end date try using the command `/vote_archive Y`. It should return an error stating that the voting hasn’t started yet. Note: there’s a minor string mistake – it should say: "Sorry! The voting period for voting to archive the channel has not started yet.", but it says currently “"Sorry! The voting period for voting to archive the channel has passed.".
 
-## Things to do
-- Fix potential bugs related to parsing different types of payloads
-- Finish integrating the code with the other features
-- Fix minor database bugs
-- General refactoring with other features (ie. centralizing the time format code under a single file)
+### Implementation Details:
+
+- `check_valid_event_payload(payload, team_id, token)`
+- `check_valid_slash_command_payload(payload, team_id, token)`
+- `parse_payload(payload)`
+- `handle_message_event(payload)`
+- `handle_workspace_channels(payload)`
+- `check_id(payload, bot_id)`
+- `handle_slash_command()`
+- `handle_vote(payload)`
+- `handle_disable_activity_warnings_invocation(payload)`
+- `handle_set_activity_warning_threshold_invocation(payload)`
+- `handle_disable_mood_messages_invocation(payload)`
+- `handle_join_class_invocation(payload)`
+- `handle_meetup_invocation(payload)`
+- `is_time_format_valid`
+- `check_date(end_date)`
+- `send_poll_msg(channel_id, text)`
+- `check_poll_results(channel_id)`
+- `archive_channel(channel_id)`
+- `check_channels ()`
+- `do_channel_check()`
 
 # Meetup Feature - Maya Hall and Jason Huang:
 - `meetup`, adds a log to the database with the meeting timestamp, location, message. You can enter a time in the form of "XsXmXhXd" where X are different integers. Meetup converts string explaination of a time to seconds.
