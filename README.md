@@ -140,7 +140,7 @@ To create a meetup, do `/meetup #s#m#h#d, <location (optional)>`. This will crea
 
 ## Implementation Details
 - `meetup(payload)`- Adds a log to the database with the meeting timestamp, location, message. You can enter a time in the form of "XsXmXhXd" where X are different integers. Meetup converts string explaination of a time to seconds.
-- `handle_message_scheduling(message, channel_id, location, ts)` - This is an internal function that takes in a message, destination channel, location string, and a timestamp and sends the reminder message at the destination channel. Additionally, the data of the reminder is stored in a Firebase database.
+- `handle_message_scheduling(message, channel_id, location, ts)` - This is an internal function that takes in a message, destination channel, location string, and a timestamp and sends the reminder message at the destination channel at a specified time. Additionally, the data of the reminder is stored in a Firebase database.
 - `in_five` - This is an internal function that checks whether any events in the database occurs within the next five minutes. If so, a message will be sent after a delay. This command will automatically be called every five minutes while the bot is active. This command is currently no longer needed due to a change in how messages are scheduled.
 
 ## Limitations
