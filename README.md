@@ -46,7 +46,7 @@ Note: manually triggering activity warnings when they are disabled for a definit
 
 
 ## Convo Summary
-(@MAYA ADD DESC HERE)
+Conversation summary feature: Conversation summary is a triggered slash command that uses the NLTK python package and tokenization to process given messages in the past 6 hours and summarize them. Since this function assigns a value to each sentence, there may be a case where there is no significant value associated with specific messages, in which case, the function would return every message from the past 6 hours. 
 - `/summarize_conversation` - summarizes a conversation
 
 ## General & Archiving a channel:
