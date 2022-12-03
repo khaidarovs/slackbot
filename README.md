@@ -96,7 +96,7 @@ There are two ways you could test this feature:
 -	Do the same setup as in the example above, but this time 2 or more people should vote Y using the `/vote_archive` command. If you run `/trigger_check_vote_results` you should find that the bot archived the channel, which you should be notified about by the SlackBot bot. 
 
 ### Limitations:
--	If new people are added to the channel after the poll message has been sent, their votes will not be counted 
+-	If new people are added to the channel after the poll message has been sent, their votes will not be counted.
 
 ### Additional acceptance tests:
 -	Our bot doesn’t allow users to create public channels. Test it by creating a public channel ("Add Channel" -> "Create new channel" in the workspace) – the bot should archive the channel immediately and you should be notified of it by the SlackBot Bot
@@ -131,7 +131,7 @@ There are two ways you could test this feature:
 # Meetup Feature - Maya Hall and Jason Huang:
 
 ## Creating a meetup
-To create a meetup, do `/meetup #s#m#h#d, <location (optional)>`. The "s" "m" "h" and "d" are acceptable inputs for second, minute, hour, and day respectively. If no specific letter is used, 
+To create a meetup, do `/meetup #s#m#h#d, <location (optional)>`. This will create a reminder after a specified amount of time. The "s" "m" "h" and "d" are acceptable modifiers for second, minute, hour, and day respectively. If no specific letter is used, minutes is assumed by default. Location adds an optional tag, that will be included in the reminder message.
 
 ## Examples to try:
 - `/meetup 5m3s` This will create a reminder in 5 minutes 3 seconds from the current time.
@@ -139,12 +139,12 @@ To create a meetup, do `/meetup #s#m#h#d, <location (optional)>`. The "s" "m" "h
 - `/meetup 10m, https://uchicago.zoom.us/j/20816624750?pwd=ZzNjZllJZkMwclBVZHpZNW8ycThrUT09` - this will create a meetup at the specified Zoom link in 10 minutes.
 
 ## Implementation Details
-- `meetup`- Adds a log to the database with the meeting timestamp, location, message. You can enter a time in the form of "XsXmXhXd" where X are different integers. Meetup converts string explaination of a time to seconds.
-- `wait_message` - This will stores a combination of a location, a message, and a time as a varaible into a database.
-- `in_five` - checks whether any events in the database occurs within the next five minutes. If so, a message will be sent after a delay. This command will automatically be called every five minutes while the bot is active. This command is currently no longer needed.
+- `meetup(payload)`- Adds a log to the database with the meeting timestamp, location, message. You can enter a time in the form of "XsXmXhXd" where X are different integers. Meetup converts string explaination of a time to seconds.
+- `handle_message_scheduling(message, channel_id, location, ts)` - This is an internal function that takes in a message, destination channel, location string, and a timestamp and sends the reminder message at the destination channel. Additionally, the data of the reminder is stored in a Firebase database.
+- `in_five` - This is an internal function that checks whether any events in the database occurs within the next five minutes. If so, a message will be sent after a delay. This command will automatically be called every five minutes while the bot is active. This command is currently no longer needed due to a change in how messages are scheduled.
 
 ## Limitations
-- Currently there is no 
+- Currently there is no method to edit a set meetup after it has been made, although data for all meetups is recorded in Firebase. Additionally, once a meetup's information has been added to Firebase, there isn't a method for removing it. In the long run, this may cause storage issues, but given the scope and size of the bot, this should not be an issue.
 
 # Activity warnings, Mood messages & Conversation Summary (Matt & Maya G.): 
 
