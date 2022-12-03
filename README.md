@@ -1,8 +1,8 @@
 # Testing 
-In order to run the tests for this branch: 
+In order to run the unit tests for our bot: 
 1. cd into the slackbot directory.
-2. Place the .env file, `slackbot-v1-firebase-adminsdk-n7ggn-fcdad3e5ca.json` and `slackbot-software-firebase-adminsdk-xxfr0-f706556aac.json` files inside the slackbot directory before running the tests.
-3. Run `pip install -r requirements.txt` or `pip3 install -r requirements.txt`to install the necessary requirements.
+2. Place the `.env` file, `slackbot-v1-firebase-adminsdk-n7ggn-fcdad3e5ca.json` and `slackbot-software-firebase-adminsdk-xxfr0-f706556aac.json` files inside the slackbot directory before running the tests.
+3. Run `pip install -r requirements.txt` or `pip3 install -r requirements.txt` to install the necessary requirements.
 4. Run the tests using the commands below: `python -m unittest discover` or `python3 -m unittest discover`.
 
 # Installation Guide
