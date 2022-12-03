@@ -18,7 +18,7 @@ Once you join the workspace, use the slash commands and acceptance tests outline
 
 ## Onboarding:
 
-- `/join_class SUBJ-##### MM-DD-YYYY`
+- `/join_class <class code> <end date>`
 
 ## Meetup:
 
@@ -28,7 +28,7 @@ Once you join the workspace, use the slash commands and acceptance tests outline
 
 - `/enable_activity_warnings`
 - `/disable_activity_warnings <downtime (optional)>` 
-- `/set_activity_warning_threshold <number of messages>`
+- `/set_activity_warning_threshold <threshold (optional)>`
 - `/set_activity_warning_content <content (optional)>`
 - `/set_mood_message_content <content (optional)>`
 - `/enable_mood_messages`
