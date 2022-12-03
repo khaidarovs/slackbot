@@ -193,4 +193,4 @@ The function is:
 
 (CONVO)
 > user uploads their notes on class today
-- `/summarize_conversation` - summarizes the notes in fewer sentences
+- `/summarize_conversation` - tends to summarize the notes in fewer sentences
