@@ -19,11 +19,23 @@ Once you join the workspace, use the slash commands and acceptance tests outline
 
 ## Onboarding:
 
-- `/join_class <class code> <end date>`
+- `/join_class <four letter department code>-<five digit course code> <MM-DD-YYYY>`
 
 ## Meetup:
 
-- `/meetup <four letter department code>-<five digit course code> <MM-DD-YYYY>`
+- `/meetup <time from now>, <location (optional)>`
+
+## Activity warnings, Mood messages & Conversation Summary:
+
+- `/enable_activity_warnings`
+- `/disable_activity_warnings <downtime (optional)>` 
+- `/set_activity_warning_threshold <threshold (optional)>`
+- `/set_activity_warning_content <content (optional)>`
+- `/set_mood_message_content <content (optional)>`
+- `/enable_mood_messages`
+- `/disable_mood_messages <downtime (optional)>`
+- `/summarize_conversation`
+- `/trigger_activity_warning`
 
 ## General & Archiving a channel:
 
@@ -116,33 +128,19 @@ There are two ways you could test this feature:
 - `do_channel_check()`
 
 # Meetup Feature - Maya Hall and Jason Huang:
-- `meetup`, adds a log to the database with the meeting timestamp, location, message. You can enter a time in the form of "XsXmXhXd" where X are different integers. Meetup converts string explaination of a time to seconds.
-- `wait_message`, will stores a combination of a location, a message, and a time as a varaible into a database.
-- `in_five`, checks whether any events in the database occurs within the next five minutes. If so, a message will be sent after a delay. This command will automatically be called every five minutes while the bot is active. This command is currently no longer needed.
 
-## Meetup Test Changes
-- We realized that the previous tests for `in_five` pulled data from the wrong location. The test have been adjusted to pull information from the correct location designated in our code.
+## Creating a meetup
+To create a meetup, do `/meetup #s#m#h#d, <location (optional)>`
 
-## Future Plans
-- We plan to change the storage method to Firebase in the near future.
-- Additionally, we intend to add alternate formats/features for meet times and include reminders for further versitility.
-
-### Onboarding Test Changes (4.A)
-- Firebase implimentation provides a more consistent and secure database. Test cases have been adjusted to match the new storage method.
-- Development cycle slightly slowed this iteration due to developer sickness. We have yet to impliment a date-time system consistent throughout the project.
-
-## Future Plans
-- We plan to add a function that automatically calls the `in_five` function at set intervals, activated after bot becomes online.
-- Create a standard date-time system for the bot.
-- If time permits, reactions can bping attendees for each meeting.
-
-## Scheduling Adjustment
-- Due to how `in_five` was changed in implimentation, so that reminders are set to a future date instead of being actively updated, the command was rendered obsolete.
-
-### Examples to try:
+## Examples to try:
 - `/meetup 5m3s` This will create a reminder in 5 minutes 3 seconds from the current time.
 - `/meetup 5m3s, Zoom` This will also create a reminder in the same time, but specify the location as Zoom.
+- `/meetup 10m, https://uchicago.zoom.us/j/20816624750?pwd=ZzNjZllJZkMwclBVZHpZNW8ycThrUT09` - this will create a meetup at the specified Zoom link in 10 minutes
 
+## Implementation Details
+- `meetup`- adds a log to the database with the meeting timestamp, location, message. You can enter a time in the form of "XsXmXhXd" where X are different integers. Meetup converts string explaination of a time to seconds.
+- `wait_message` - will stores a combination of a location, a message, and a time as a varaible into a database.
+- `in_five` - checks whether any events in the database occurs within the next five minutes. If so, a message will be sent after a delay. This command will automatically be called every five minutes while the bot is active. This command is currently no longer needed.
 
 # Activity warnings, Mood messages & Conversation Summary (Matt & Maya G.): 
 
@@ -150,7 +148,6 @@ The activity warnings and mood messages warnings features, have similar commands
     
    At midnight, a function checks whether an activity message should be sent or not. Further, we can force-trigger this with a slash command.
 Mood messages are sent whenever a negative message is sent into the channel to encourage more positive conversation.
-
 
 - `/enable_activity_warnings` - enables activity warnings indefinitely
 - `/disable_activity_warnings <downtime (optional)>` - disables activity warnings for a specified downtime, if none, then indefinite
@@ -163,48 +160,6 @@ Mood messages are sent whenever a negative message is sent into the channel to e
 
 Note: manually triggering activity warnings when they are disabled for a definite specified period of time decrements the downtime by 1 day. This is because, conventionally, activity warnings only are triggered daily. However for debugging purposes this is too long to wait.
 
-
 ## Convo Summary
 Conversation summary feature: Conversation summary is a triggered slash command that uses the NLTK python package and tokenization to process given messages in the past 6 hours and summarize them. Since this function assigns a value to each sentence, there may be a case where there is no significant value associated with specific messages, in which case, the function would return every message from the past 6 hours. 
 - `/summarize_conversation` - summarizes a conversation
-
-
-# ITER2 - Activity Warnings, Conversation Summary, and Mood Messages - Matt and Maya G
-## Activity Warnings
-The iteration finalized the activity warnings feature. 
-This encompasses the following<br>
-1. Scheduling messages to send
-2. Firebase support for multiple channels <br>
-Unit tests for both of these features have been added. However, there are 
-some practical issues with testing scheduling that make it difficult to test (i.e.
-making sure the functions are called at the right times). Thus, we are just 
-testing the functionality of the functions called by the scheduler. <br>
-## Conversation Summary
-Conversation summary is a new feature that is a response to a slash command 
-`/summarize_conversation` which summarizes the conversation in the past 6 
-hrs. Because the conversation summary will differ each time due to NLP, our two
-test cases check if there are 0 msgs in the past 6 hrs, or if there are >0 msgs,
-and test the correct behavior for each case<br>
-Note that we plan to extend this feature to allow for an aribtrary amount of 
-time as opposed to fixed 6 hour conversation history period
-## Mood Messages
-This iteration finalized the mood messages feature
-This encompasses the following<br>
-1. Making sure send_message is only implemented when the mood is negative. For usability purposes, we are not sending a message when the NLP model classifies a message as positive or neutral. This has a tradeoff: It might be helpful to know what the NLP model is predicting the mood to be in a case where the NLP mood prediction is different from what the user intended it to be. This being said, the Sentiment Analyzer model in python's NLTK package is proven to have a high accuracy (90%+ on testing sets). 
-2. Scheduling messages to send
-3. Firebase support for multiple channels <br>
-Unit tests for all three of these features have been added. However, there are 
-some practical issues with testing scheduling that make it difficult to test (i.e.
-making sure the functions are called at the right times). Thus, we are just 
-testing the functionality of the functions called by the scheduler. <br>
-## Testing Notes
-### Unit Tests
-Unit tests for each function and possible unit interactions are in place
-### Acceptance Testing
-Acceptance tests for activity & mood have been put in place, which walk through
-different possible command calls by users and ensures that variables and command
-outputs are correct
-## To-fix and Final Implementations for Assgn 5
-Minor bug in mood messages test cases<br>
-Add support for variable time for convo summary<br>
-Finalize scheduling integration
