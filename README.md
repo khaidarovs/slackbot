@@ -16,6 +16,7 @@ https://join.slack.com/t/studyroomuchicago/shared_invite/zt-1kt9yjwxs-Rj_elYqVJ8
 Once you join the workspace, use the slash commands and acceptance tests outlined below to test the functionality of our bot. The slash commands are broken into 4 functionality categories: onboarding, meetup, activity warnings & mood messages, general & channel archiving. Please refer to each section below to find more details on how to use the slash commands and potential acceptance tests you could run.  
 
 # The complete set of slash commands available in the workspace:
+Note that many of these slash commands use Slack API calls, which have rate limiting in place to prevent too many calls being made in a short amount of time. As a result, try not to spam inputting the slash command all at once, as it may temporarily crash the bot (this would be seen via operation dispatch errors). In the case that happens, you would need to wait for a few minutes for the commands to be working again.  
 
 ## Onboarding:
 
